@@ -1,0 +1,18 @@
+#
+msgid ""
+msgstr "Language: fr_CA\n"
+
+msgid "plugins.generic.downloadReviews.displayName"
+msgstr "Télécharger des critiques"
+
+msgid "plugins.generic.downloadReviews.description"
+msgstr "Téléchargez un fichier PDF ou XML de l'examen d'une soumission"
+
+msgid "plugins.generic.downloadReviews.review.authorOnly"
+msgstr "Sections uniquement des auteurs affichées"
+
+msgid "plugins.generic.downloadReviews.review.allSections"
+msgstr "Le formulaire d'éditeur montre toutes les sections de révision"
+
+msgid "plugins.generic.downloadReviews.downloadReviewForm"
+msgstr "Télécharger le formulaire de révision"

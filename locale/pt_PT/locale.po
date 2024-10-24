@@ -1,0 +1,18 @@
+#
+msgid ""
+msgstr "Language: pt_PT\n"
+
+msgid "plugins.generic.downloadReviews.displayName"
+msgstr "Download de resenhas"
+
+msgid "plugins.generic.downloadReviews.description"
+msgstr "Faça o download de um arquivo PDF ou XML da revisão de um envio"
+
+msgid "plugins.generic.downloadReviews.review.authorOnly"
+msgstr "Seções somente de autor exibidas"
+
+msgid "plugins.generic.downloadReviews.review.allSections"
+msgstr "O formulário do editor mostra todas as seções de revisão"
+
+msgid "plugins.generic.downloadReviews.downloadReviewForm"
+msgstr "Formulário de revisão de download"

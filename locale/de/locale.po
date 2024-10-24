@@ -1,0 +1,19 @@
+#
+msgid ""
+msgstr "Language: de\n"
+
+msgid "plugins.generic.downloadReviews.displayName"
+msgstr "Bewertungen herunterladen"
+
+msgid "plugins.generic.downloadReviews.description"
+msgstr ""
+"Laden Sie eine PDF- oder XML -Datei der Bewertung einer Einreichung herunter"
+
+msgid "plugins.generic.downloadReviews.review.authorOnly"
+msgstr "Nur-Autor-Abschnitte angezeigt"
+
+msgid "plugins.generic.downloadReviews.review.allSections"
+msgstr "Das Editorformular zeigt alle Überprüfungsabschnitte"
+
+msgid "plugins.generic.downloadReviews.downloadReviewForm"
+msgstr "Rezensionsformular herunterladen"

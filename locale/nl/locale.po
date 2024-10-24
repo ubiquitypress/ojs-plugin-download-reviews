@@ -1,0 +1,19 @@
+#
+msgid ""
+msgstr "Language: nl\n"
+
+msgid "plugins.generic.downloadReviews.displayName"
+msgstr "Download beoordelingen"
+
+msgid "plugins.generic.downloadReviews.description"
+msgstr ""
+"Download een PDF- of XML -bestand van de beoordeling van een inzending"
+
+msgid "plugins.generic.downloadReviews.review.authorOnly"
+msgstr "Auto-alleen-secties weergegeven"
+
+msgid "plugins.generic.downloadReviews.review.allSections"
+msgstr "Editor -formulier toont alle beoordelingssecties"
+
+msgid "plugins.generic.downloadReviews.downloadReviewForm"
+msgstr "Download beoordelingsformulier"

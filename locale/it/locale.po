@@ -1,0 +1,18 @@
+#
+msgid ""
+msgstr "Language: it\n"
+
+msgid "plugins.generic.downloadReviews.displayName"
+msgstr "Scarica recensioni"
+
+msgid "plugins.generic.downloadReviews.description"
+msgstr "Scarica un file PDF o XML di una revisione di una presentazione"
+
+msgid "plugins.generic.downloadReviews.review.authorOnly"
+msgstr "Sezioni solo autore visualizzate"
+
+msgid "plugins.generic.downloadReviews.review.allSections"
+msgstr "Il modulo dell'editor mostra tutte le sezioni di revisione"
+
+msgid "plugins.generic.downloadReviews.downloadReviewForm"
+msgstr "Scarica il modulo di recensione"

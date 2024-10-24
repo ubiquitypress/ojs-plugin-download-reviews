@@ -1,0 +1,18 @@
+#
+msgid ""
+msgstr "Language: ar\n"
+
+msgid "plugins.generic.downloadReviews.displayName"
+msgstr "تنزيل المراجعات"
+
+msgid "plugins.generic.downloadReviews.description"
+msgstr "قم بتنزيل ملف PDF أو XML لمراجعة التقديم"
+
+msgid "plugins.generic.downloadReviews.review.authorOnly"
+msgstr "أقسام المؤلف فقط المعروضة"
+
+msgid "plugins.generic.downloadReviews.review.allSections"
+msgstr "يعرض نموذج المحرر جميع أقسام المراجعة"
+
+msgid "plugins.generic.downloadReviews.downloadReviewForm"
+msgstr "تنزيل نموذج المراجعة"

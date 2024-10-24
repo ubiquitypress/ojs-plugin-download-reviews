@@ -1,0 +1,18 @@
+#
+msgid ""
+msgstr ""
+
+msgid "plugins.generic.downloadReviews.displayName"
+msgstr "Download Reviews"
+
+msgid "plugins.generic.downloadReviews.description"
+msgstr "Download a PDF or XML file of a submission's review"
+
+msgid "plugins.generic.downloadReviews.review.authorOnly"
+msgstr "Author-Only Sections Displayed"
+
+msgid "plugins.generic.downloadReviews.review.allSections"
+msgstr "Editor Form Shows All Review Sections"
+
+msgid "plugins.generic.downloadReviews.downloadReviewForm"
+msgstr "Download Review Form"
