@@ -9,10 +9,13 @@
  * @brief DownloadReviews plugin class
  */
 
+use APP\core\Application;
+use APP\core\Request;
+use APP\facades\Repo;
+use PKP\db\DAORegistry;
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
 use PKP\security\Role;
-use PKP\core\JSONMessage;
 
 class DownloadReviewsPlugin extends GenericPlugin {
     /**
@@ -26,9 +29,9 @@ class DownloadReviewsPlugin extends GenericPlugin {
 
         // Override OJS templates
         Hook::add('TemplateResource::getFilename', [$this, '_overridePluginTemplates']);
-
-        Hook::add('TemplateManager::display', [$this, 'handleTemplateDisplay']);
+        Hook::add('TemplateManager::fetch', [$this, 'editTemplate']);
         Hook::add('LoadHandler', [$this, 'setupHandler']);
+
         return true;
     }
 
@@ -68,103 +71,72 @@ class DownloadReviewsPlugin extends GenericPlugin {
         return $this->getPluginPath() . '/settings.xml';
     }
 
-    function handleTemplateDisplay($hookName, $params) {
-//        $request = Application::get()->getRequest();
-//        $context = $request->getContext();
-//
-//        if ($context) {
-//            if ($this->isJournalManager()) {
-//                $templateMgr = &$params[0];
-//                $menu = $templateMgr->getState('menu');
-//                $router = $request->getRouter();
-//
-//                $menu['statistics']['submenu']['site_usage'] = [
-//                    'name' => __('plugins.generic.siteUsage.siteUsage'),
-//                    'url' => $router->url($request, null, 'stats', 'siteUsage'),
-//                    'isCurrent' => $request->getRequestedPage() === 'stats' && $request->getRequestedOp() === 'siteUsage'
-//                ];
-//
-//                $templateMgr->setState(['menu' => $menu]);
-//            }
-//        }
-    }
-
-    function setupHandler($hookName, $params) {
-//        $requestedPage = $params[0];
-//        $requestedOperation = $params[1];
-//
-//        if ($this->isJournalManager() && $requestedPage === "stats" && $requestedOperation === "siteUsage") {
-//
-//            $this->import('pages.SiteUsageHandler');
-//            define('HANDLER_CLASS', SiteUsageHandler::class);
-//
-//            return true;
-//        }
-//
-//        return false;
-    }
-
-    function isJournalManager(): bool
+    public function editTemplate($hookName, $params)
     {
-//        $request = Application::get()->getRequest();
-//        $user = $request->getUser();
-//        if(!$user) {
-//            return false;
-//        }
-//        $context = $request->getContext();
-//        if($context) {
-//            $contextId = $context->getId();
-//            $roleDao = DAORegistry::getDAO('RoleDAO'); /* @var $roleDao RoleDAO */
-//            return $roleDao->userHasRole($contextId, $user->getId(), Role::ROLE_ID_MANAGER);
-//        }
-//
+        if ($params[1] == 'controllers/grid/users/reviewer/readReview.tpl') {
+            $templateMgr =& $params[0];
+            $request = Application::get()->getRequest();
+            $templateMgr->assign('downloadLink', $request->getIndexUrl() . '/' . $request->getContext()->getPath() . '/exportreview');
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    function setupHandler($hookName, $params) {
+        $request = Application::get()->getRequest();
+        if($params[0] === 'exportreview' && $this->validateReviewExport($request)) {
+            if($params[1] === 'pdf') {
+
+            } elseif($params[1] === 'xml') {
+
+            }
+        }
+
         return false;
     }
 
     /**
-     * @copydoc Plugin::getActions()
+     * @throws Exception
      */
-    public function getActions($request, $verb) {
-//        $router = $request->getRouter();
-//        import('lib.pkp.classes.linkAction.request.AjaxModal');
-//        return array_merge(
-//            $this->getEnabled()?array(
-//                new LinkAction(
-//                    'settings',
-//                    new AjaxModal(
-//                        $router->url($request, null, null, 'manage', null, array('verb' => 'settings', 'plugin' => $this->getName(), 'category' => 'generic')),
-//                        $this->getDisplayName()
-//                    ),
-//                    __('manager.plugins.settings'),
-//                    null
-//                ),
-//            ):array(),
-//            parent::getActions($request, $verb)
-//        );
+    protected function validateReviewExport(Request $request): bool
+    {
+        $reviewId = $request->getUserVar('reviewAssignmentId');
+        $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var \PKP\submission\reviewAssignment\ReviewAssignmentDAO $reviewAssignmentDao */
+        $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
+
+        $user = $request->getUser();
+        if(!$user) {
+            return false;
+        }
+
+        $context = $request->getContext();
+        if($context) {
+            $contextId = $context->getId();
+            $roleDao = DAORegistry::getDAO('RoleDAO'); /* @var $roleDao RoleDAO */
+
+            if(!$roleDao->userHasRole($contextId, $user->getId(), Role::ROLE_ID_MANAGER)
+                && $roleDao->userHasRole($contextId, $user->getId(), Role::ROLE_ID_MANAGER))
+            {
+                return false;
+            }
+        }
+
+        if(!in_array($request->getUserVar('authorFriendly'), ['0', '1'])) {
+            throw new Exception('Invalid authorFriendly value');
+        }
+
+        $submissionId = $request->getUserVar('submissionId');
+        $submission = Repo::submission()->get($submissionId);
+        if (!$submission) {
+            throw new Exception('Invalid submission');
+        }
+
+        if(!$reviewAssignment) {
+            throw new Exception('Invalid review assignment');
+        }
+
+        return true;
     }
 
-    public function manage($args, $request) {
-//        switch ($request->getUserVar('verb')) {
-//            case 'settings':
-//                $context = $request->getContext();
-//
-//                $templateMgr = TemplateManager::getManager($request);
-//                $templateMgr->registerPlugin('function', 'plugin_url', array($this, 'smartyPluginUrl'));
-//
-//                $this->import('SiteUsageSettingsForm');
-//                $form = new SiteUsageSettingsForm($this, $context->getId());
-//
-//                if ($request->getUserVar('save')) {
-//                    $form->readInputData();
-//                    if ($form->validate()) {
-//                        $form->execute();
-//                        return new JSONMessage(true);
-//                    }
-//                } else {
-//                    $form->initData();
-//                }
-//                return new JSONMessage(true, $form->fetch($request));
-//        }
-//        return parent::manage($args, $request);
-    }
 }
