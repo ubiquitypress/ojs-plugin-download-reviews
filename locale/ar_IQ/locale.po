@@ -1,6 +1,6 @@
 #
 msgid ""
-msgstr "Language: ar\n"
+msgstr "Language: ar_IQ\n"
 
 msgid "plugins.generic.downloadReviews.displayName"
 msgstr "تنزيل المراجعات"

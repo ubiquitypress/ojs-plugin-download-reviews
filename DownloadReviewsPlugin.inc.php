@@ -9,21 +9,10 @@
  * @brief DownloadReviews plugin class
  */
 
-use APP\core\Application;
-use APP\core\Request;
-use APP\facades\Repo;
 use Illuminate\Support\Carbon;
 use Mpdf\Mpdf;
-use PKP\db\DAORegistry;
-use PKP\facades\Locale;
-use PKP\plugins\GenericPlugin;
-use PKP\plugins\Hook;
-use PKP\reviewForm\ReviewFormElement;
-use PKP\reviewForm\ReviewFormElementDAO;
-use PKP\reviewForm\ReviewFormResponseDAO;
-use PKP\security\Role;
-use PKP\submission\SubmissionCommentDAO;
-use PKP\submissionFile\SubmissionFile;
+
+import('lib.pkp.classes.plugins.GenericPlugin');
 
 class DownloadReviewsPlugin extends GenericPlugin {
     /**
@@ -36,9 +25,9 @@ class DownloadReviewsPlugin extends GenericPlugin {
         }
 
         // Override OJS templates
-        Hook::add('TemplateResource::getFilename', [$this, '_overridePluginTemplates']);
-        Hook::add('TemplateManager::fetch', [$this, 'editTemplate']);
-        Hook::add('LoadHandler', [$this, 'setupHandler']);
+        HookRegistry::register('TemplateResource::getFilename', [$this, '_overridePluginTemplates']);
+		HookRegistry::register('TemplateManager::fetch', [$this, 'editTemplate']);
+		HookRegistry::register('LoadHandler', [$this, 'setupHandler']);
 
         return true;
     }
@@ -94,13 +83,14 @@ class DownloadReviewsPlugin extends GenericPlugin {
     function setupHandler($hookName, $params) {
         $request = Application::get()->getRequest();
         if($params[0] === 'exportreview' && $this->validateReviewExport($request)) {
-            $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var \PKP\submission\reviewAssignment\ReviewAssignmentDAO $reviewAssignmentDao */
+            $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var $reviewAssignmentDao ReviewAssignmentDAO */
             $authorFriendly = (bool) $request->getUserVar('authorFriendly');
             $reviewId = $request->getUserVar('reviewAssignmentId');
             $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
             $submissionId = $request->getUserVar('submissionId');
-            $submission = Repo::submission()->get($submissionId);
-            $submissionCommentDao = DAORegistry::getDAO('SubmissionCommentDAO'); /* @var $submissionCommentDao SubmissionCommentDAO */
+			$submissionDao = DAORegistry::getDAO('SubmissionDAO');
+			$submission = $submissionDao->getById($submissionId);
+			$submissionCommentDao = DAORegistry::getDAO('SubmissionCommentDAO'); /* @var $submissionCommentDao SubmissionCommentDAO */
             if($params[1] === 'pdf') {
                 $submissionId = $submission->getId();
                 $submissionComments = $submissionCommentDao->getReviewerCommentsByReviewerId($submissionId, $reviewAssignment->getReviewerId(), $reviewId, true);
@@ -186,13 +176,13 @@ class DownloadReviewsPlugin extends GenericPlugin {
                         }
                         $value = $reviewFormResponses[$elementId];
                         $textFields = [
-                            ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_SMALL_TEXT_FIELD,
-                            ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_TEXT_FIELD,
-                            ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_TEXTAREA
+                            REVIEW_FORM_ELEMENT_TYPE_SMALL_TEXT_FIELD,
+                            REVIEW_FORM_ELEMENT_TYPE_TEXT_FIELD,
+                            REVIEW_FORM_ELEMENT_TYPE_TEXTAREA
                         ];
                         if (in_array($reviewFormElement->getElementType(), $textFields)) {
                             $html .= "<div class='section'><span>" . $value . "</span></div>";
-                        } elseif ($reviewFormElement->getElementType() == ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES) {
+                        } elseif ($reviewFormElement->getElementType() == REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES) {
                             $possibleResponses = $reviewFormElement->getLocalizedPossibleResponses();
                             $reviewFormCheckboxResponses = $reviewFormResponses[$elementId];
                             foreach ($possibleResponses as $key => $possibleResponse) {
@@ -217,7 +207,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
                                 }
                             }
                             $html .= "<div class='section'></div>";
-                        } elseif ($reviewFormElement->getElementType() == ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS) {
+                        } elseif ($reviewFormElement->getElementType() == REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS) {
                             $possibleResponsesRadios = $reviewFormElement->getLocalizedPossibleResponses();
                             foreach ($possibleResponsesRadios as $key => $possibleResponseRadio) {
                                 if($reviewFormResponses[$elementId] == $key) {
@@ -241,7 +231,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
                                 }
                             }
                             $html .= "<div class='section'></div>";
-                        } elseif ($reviewFormElement->getElementType() == ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_DROP_DOWN_BOX) {
+                        } elseif ($reviewFormElement->getElementType() == REVIEW_FORM_ELEMENT_TYPE_DROP_DOWN_BOX) {
                             $possibleResponsesDropdown = $reviewFormElement->getLocalizedPossibleResponses();
                             $dropdownResponse = $possibleResponsesDropdown[$reviewFormResponses[$elementId]];
                             $html .= "<div class='section'><span>" . $dropdownResponse . "</span></div>";
@@ -255,35 +245,40 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 </div>
             ";
 
-                    if($submissionComments->records->isEmpty()) $html .= "<div class='section'><span>" . __('common.none') . "</span></div>";
+					$hasComments = false;
                     foreach ($submissionComments->records as $comment) {
+						$hasComments = true;
                         $commentStripped = strip_tags($comment->comments);
                         $html .= "<div class='section'><span>" . $commentStripped . "</span></div>";
                     }
-                    if (!$authorFriendly) {
+					if(!$hasComments) $html .= "<div class='section'><span>" . __('common.none') . "</span></div>";
+
+					if (!$authorFriendly) {
                         $html .= "
                     <div>
                         <em style='font-weight: bold; color:#606060;'>" . __('submission.comments.cannotShareWithAuthor') . "</em>
                     </div>
                 ";
 
-                        if($submissionCommentsPrivate->records->isEmpty()) $html .= "<div class='section'><span>" . __('common.none') . "</span></div>";
-                        foreach ($submissionCommentsPrivate->records as $comment) {
+                        $hasPrivateComments = false;
+						foreach ($submissionCommentsPrivate->records as $comment) {
+							$hasPrivateComments = true;
                             $commentStripped = strip_tags($comment->comments);
                             $html .= "<div class='section'><span>" . $commentStripped . "</span></div>";
                         }
-                    }
+						if(!$hasPrivateComments) $html .= "<div class='section'><span>" . __('common.none') . "</span></div>";
+					}
                 }
-                $submissionFiles = Repo::submissionFile()
-                    ->getCollector()
-                    ->filterBySubmissionIds([$submissionId])
-                    ->filterByFileStages([SubmissionFile::SUBMISSION_FILE_SUBMISSION])
-                    ->getMany();
+				$submissionFilesIterator = Services::get('submissionFile')->getMany([
+					'submissionIds' => [$submissionId],
+					'assocTypes' => [ASSOC_TYPE_REVIEW_ASSIGNMENT],
+					'assocIds' => [$reviewId]
+				]);
 
-                $primaryLocale = Locale::getPrimaryLocale();
+                $primaryLocale = AppLocale::getPrimaryLocale();
                 $html .= "<div><h4 style='font-weight: bold;'>" . __('reviewer.submission.reviewFiles') . "</h4></div>";
 
-                foreach ($submissionFiles as $submissionFile) {
+                foreach ($submissionFilesIterator as $submissionFile) {
                     $fileName = $submissionFile->_data['name'][$primaryLocale];
                     $html .= "<div class='section'><span>" . $fileName . "</span></div>";
                 }
@@ -296,8 +291,9 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $submissionId = $request->getUserVar('submissionId');
                 $reviewId = $request->getUserVar('reviewAssignmentId');
                 $xmlFileName = "submission_review_{$submissionId}-{$reviewId}.xml";
-                $submission = Repo::submission()->get($submissionId);
-                $publication = $submission->getCurrentPublication();
+				$submissionDao = DAORegistry::getDAO('SubmissionDAO'); /* @var $submissionDao SubmissionDAO */
+				$submission = $submissionDao->getById($submissionId);
+				$publication = $submission->getCurrentPublication();
                 $htmlTitle = $publication->getLocalizedTitle(null, 'html');
                 $articleTitle = $this->mapTitleHtmlTagsToXml($htmlTitle);
                 $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
@@ -420,7 +416,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
                     while ($reviewFormElement = $reviewFormElements->next()) {
                         if ($authorFriendly && !$reviewFormElement->getIncluded()) continue;
                         $elementId = $reviewFormElement->getId();
-                        if ($reviewFormElement->getElementType() == ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES) {
+                        if ($reviewFormElement->getElementType() == REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES) {
                             $results = [];
                             foreach ($reviewFormResponses[$elementId] as $index) {
                                 if (isset($reviewFormElement->getLocalizedPossibleResponses()[$index])) {
@@ -428,7 +424,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
                                 }
                             }
                             $answer = implode(', ', $results);
-                        } elseif (in_array($reviewFormElement->getElementType(), [ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS, ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_DROP_DOWN_BOX])) {
+                        } elseif (in_array($reviewFormElement->getElementType(), [REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS, REVIEW_FORM_ELEMENT_TYPE_DROP_DOWN_BOX])) {
                             $possibleResponses = $reviewFormElement->getLocalizedPossibleResponses();
                             $answer = array_key_exists($reviewFormResponses[$elementId], $possibleResponses) ? $possibleResponses[$reviewFormResponses[$elementId]] : '';
                         } else {
@@ -444,7 +440,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 } else {
                     foreach ($submissionComments->records as $key => $comment) {
                         $customMetaCommentsObject = $xml->createElement('custom-meta');
-                        $metaName = $submissionComments->records->count() > 1 ? 'submission-comments-' . $key + 1 : 'submission-comments';
+                        $metaName = 'submission-comments-' . $key + 1;
                         $commentsTag = $xml->createElement('meta-name', $metaName);
                         $commentsValueTag = $xml->createElement('meta-value', strip_tags($comment->comments));
                         $customMetaCommentsObject->appendChild($commentsTag);
@@ -456,7 +452,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
                         $submissionCommentsPrivate = $submissionCommentDao->getReviewerCommentsByReviewerId($submissionId, $reviewAssignment->getReviewerId(), $reviewId, false);
                         foreach ($submissionCommentsPrivate->records as $key => $comment) {
                             $customMetaCommentsPrivateObject = $xml->createElement('custom-meta');
-                            $metaName = $submissionCommentsPrivate->records->count() > 1 ? 'submission-comments-private-' . $key + 1 : 'submission-comments-private';
+                            $metaName = 'submission-comments-private-' . $key + 1;
                             $commentsTag = $xml->createElement('meta-name', $metaName);
                             $commentsValueTag = $xml->createElement('meta-value', strip_tags($comment->comments));
                             $customMetaCommentsPrivateObject->appendChild($commentsTag);
@@ -512,7 +508,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
     protected function validateReviewExport(Request $request): bool
     {
         $reviewId = $request->getUserVar('reviewAssignmentId');
-        $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var \PKP\submission\reviewAssignment\ReviewAssignmentDAO $reviewAssignmentDao */
+        $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var ReviewAssignmentDAO $reviewAssignmentDao */
         $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
 
         $user = $request->getUser();
@@ -525,8 +521,8 @@ class DownloadReviewsPlugin extends GenericPlugin {
             $contextId = $context->getId();
             $roleDao = DAORegistry::getDAO('RoleDAO'); /* @var $roleDao RoleDAO */
 
-            if(!$roleDao->userHasRole($contextId, $user->getId(), Role::ROLE_ID_MANAGER)
-                && $roleDao->userHasRole($contextId, $user->getId(), Role::ROLE_ID_MANAGER))
+            if(!$roleDao->userHasRole($contextId, $user->getId(), ROLE_ID_MANAGER)
+                && $roleDao->userHasRole($contextId, $user->getId(), ROLE_ID_MANAGER))
             {
                 return false;
             }
@@ -537,7 +533,8 @@ class DownloadReviewsPlugin extends GenericPlugin {
         }
 
         $submissionId = $request->getUserVar('submissionId');
-        $submission = Repo::submission()->get($submissionId);
+		$submissionDao = DAORegistry::getDAO('SubmissionDAO'); /* @var $submissionDao SubmissionDAO */
+		$submission = $submissionDao->getById($submissionId);
         if (!$submission) {
             throw new Exception('Invalid submission');
         }

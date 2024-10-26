@@ -1,6 +1,6 @@
 #
 msgid ""
-msgstr "Language: de\n"
+msgstr "Language: de_DE\n"
 
 msgid "plugins.generic.downloadReviews.displayName"
 msgstr "Bewertungen herunterladen"

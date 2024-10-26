@@ -1,18 +1,18 @@
 #
 msgid ""
-msgstr "Language: it\n"
+msgstr "Language: sv_SE\n"
 
 msgid "plugins.generic.downloadReviews.displayName"
-msgstr "Scarica recensioni"
+msgstr "Ladda ner recensioner"
 
 msgid "plugins.generic.downloadReviews.description"
-msgstr "Scarica un file PDF o XML di una revisione di una presentazione"
+msgstr "Ladda ner en PDF- eller XML -fil i en inlämningsgranskning"
 
 msgid "plugins.generic.downloadReviews.review.authorOnly"
-msgstr "Sezioni solo autore visualizzate"
+msgstr "Endast författare av författare"
 
 msgid "plugins.generic.downloadReviews.review.allSections"
-msgstr "Il modulo dell'editor mostra tutte le sezioni di revisione"
+msgstr "Redaktörsformulär visar alla granskningssektioner"
 
 msgid "plugins.generic.downloadReviews.downloadReviewForm"
-msgstr "Scarica il modulo di recensione"
+msgstr "Ladda ner granskningsformulär"

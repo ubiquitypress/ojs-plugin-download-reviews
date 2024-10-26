@@ -1,19 +1,18 @@
 #
 msgid ""
-msgstr "Language: nl\n"
+msgstr "Language: it_IT\n"
 
 msgid "plugins.generic.downloadReviews.displayName"
-msgstr "Download beoordelingen"
+msgstr "Scarica recensioni"
 
 msgid "plugins.generic.downloadReviews.description"
-msgstr ""
-"Download een PDF- of XML -bestand van de beoordeling van een inzending"
+msgstr "Scarica un file PDF o XML di una revisione di una presentazione"
 
 msgid "plugins.generic.downloadReviews.review.authorOnly"
-msgstr "Auto-alleen-secties weergegeven"
+msgstr "Sezioni solo autore visualizzate"
 
 msgid "plugins.generic.downloadReviews.review.allSections"
-msgstr "Editor -formulier toont alle beoordelingssecties"
+msgstr "Il modulo dell'editor mostra tutte le sezioni di revisione"
 
 msgid "plugins.generic.downloadReviews.downloadReviewForm"
-msgstr "Download beoordelingsformulier"
+msgstr "Scarica il modulo di recensione"
