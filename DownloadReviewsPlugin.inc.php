@@ -320,6 +320,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $article = $xml->createElement('article');
                 $article->setAttribute('article-type', 'reviewer-report');
                 $article->setAttribute('dtd-version', '1.2');
+                $article->setAttribute('xmlns:ali', 'http://www.niso.org/schemas/ali/1.0/');
                 $article->setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
                 $xml->appendChild($article);
 
@@ -477,16 +478,11 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $customMetaGroupObject->appendChild($customMetaReccomObject);
                 $articleMeta->appendChild($customMetaGroupObject);
                 $xml->formatOutput = true;
-                $xml->save($xmlFileName);
-                header('Content-Description: File Transfer');
                 header('Content-Type: application/xml');
                 header('Content-Disposition: attachment; filename="' . basename($xmlFileName) . '"');
-                header('Expires: 0');
-                header('Cache-Control: must-revalidate');
-                header('Pragma: public');
-                header('Content-Length: ' . filesize($xmlFileName));
-                readfile($xmlFileName);
-                unlink($xmlFileName);
+
+                echo $xml->saveXML();
+                exit;
             }
         }
 
