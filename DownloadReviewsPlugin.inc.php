@@ -83,6 +83,18 @@ class DownloadReviewsPlugin extends GenericPlugin {
     function setupHandler($hookName, $params) {
         $request = Application::get()->getRequest();
         if($params[0] === 'exportreview' && $this->validateReviewExport($request)) {
+            $primaryLocale = \AppLocale::getPrimaryLocale();
+            $localeFiles = [
+                'user.po',
+                'manager.po',
+                'common.po',
+                'reviewer.po',
+                'submission.po',
+                'editor.po',
+            ];
+            foreach($localeFiles as $localeFile) {
+                \AppLocale::registerLocaleFile($primaryLocale, "lib/pkp/locale/$primaryLocale/$localeFile");
+            }
             $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var $reviewAssignmentDao ReviewAssignmentDAO */
             $authorFriendly = (bool) $request->getUserVar('authorFriendly');
             $reviewId = $request->getUserVar('reviewAssignmentId');
