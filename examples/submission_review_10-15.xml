@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN" "JATS-archivearticle1.dtd">
+<article article-type="reviewer-report" dtd-version="1.2" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <front>
+    <journal-meta>
+      <self-uri>http://ojs3.up:8000</self-uri>
+    </journal-meta>
+    <article-meta>
+      <article-id id-type="submission-id">10</article-id>
+      <title-group>
+        <article-title>Condensing Water Availability Models to Focus on Specific Water Management Systems</article-title>
+      </title-group>
+      <contrib-group>
+        <contrib contrib-type="author">
+          <anonymous/>
+          <role specific-use="reviewer">Reviewer: A</role>
+        </contrib>
+      </contrib-group>
+      <pub-history>
+        <event event-type="current-submission-review-completed">
+          <event-desc>Current Submission Review Completed</event-desc>
+          <date iso-8601-date="2023-11-18 01:56:03">
+            <day>18</day>
+            <month>11</month>
+            <year>2023</year>
+          </date>
+        </event>
+      </pub-history>
+      <permissions>
+        <ali:license_ref>http://creativecommons.org/licenses/by/4.0/</ali:license_ref>
+      </permissions>
+      <custom-meta-group>
+        <custom-meta>
+          <meta-name>submission-comments</meta-name>
+          <meta-value>Here are my review comments</meta-value>
+        </custom-meta>
+        <custom-meta>
+          <meta-name>peer-review-stage</meta-name>
+          <meta-value>pre-publication</meta-value>
+        </custom-meta>
+        <custom-meta>
+          <meta-name>peer-review-recommendation</meta-name>
+          <meta-value>Revisions Required</meta-value>
+        </custom-meta>
+      </custom-meta-group>
+    </article-meta>
+  </front>
+</article>
