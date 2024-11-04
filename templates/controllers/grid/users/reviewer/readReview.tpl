@@ -21,8 +21,6 @@
 
         $("#exportOptions").hide();
         $("#btnExport").click(function() {
-            // pkp.eventBus.$emit('notify', 'dej', 'warning');
-
             $("#exportOptions").toggle();
         });
         $("#readReviewForm").on('click', function(event) {
