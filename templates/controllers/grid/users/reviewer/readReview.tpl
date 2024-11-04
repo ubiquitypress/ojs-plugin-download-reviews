@@ -11,8 +11,13 @@
 
 {* Form handler attachment implemented in application-specific versions of this template. *}
 
+{capture assign="reviewerRecommendations"}
+	{include file="reviewer/review/reviewerRecommendations.tpl" description="reviewer.article.selectRecommendation.byEditor" required=false}
+{/capture}
+
 <script>
 	$(function() {ldelim}
+		$('#readReviewForm').pkpHandler('$.pkp.controllers.form.AjaxFormHandler');
 		$("#exportOptions").hide();
 		$("#btnExport").click(function() {
 			$("#exportOptions").toggle();
