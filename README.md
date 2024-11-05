@@ -10,8 +10,8 @@ This plugin adds the ability to download peer reviews in PDF and XML formats dir
 
 ## Version Compatibility
 
-- **Version 1.0.0**: Compatible with OJS 3.3
-- **Version 1.1.0**: Compatible with OJS 3.4
+- **Version 1.0.6**: Compatible with OJS 3.3
+- **Version 1.1.2**: Compatible with OJS 3.4
 
 > **Note**: OJS 3.5 will include this functionality in its core, so this plugin is recommended for versions 3.3 and 3.4 only.
 
