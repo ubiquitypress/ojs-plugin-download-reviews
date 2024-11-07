@@ -38,7 +38,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
         // Override OJS templates
         Hook::add('TemplateResource::getFilename', [$this, '_overridePluginTemplates']);
         Hook::add('TemplateManager::fetch', [$this, 'editTemplate']);
-        Hook::add('LoadHandler', [$this, 'setupHandler']);
+        Hook::add('LoadComponentHandler', [$this, 'setupGridHandler']);
 
         return true;
     }
@@ -82,18 +82,18 @@ class DownloadReviewsPlugin extends GenericPlugin {
     public function editTemplate($hookName, $params)
     {
         if ($params[1] == 'controllers/grid/users/reviewer/readReview.tpl') {
-            $templateMgr =& $params[0];
             $request = Application::get()->getRequest();
-            $templateMgr->assign('downloadLink', $request->getIndexUrl() . '/' . $request->getContext()->getPath() . '/exportreview');
+            $templateMgr = &$params[0];
+            $templateMgr->assign('downloadUrl', $request->url(null, 'reviewsHandler', 'download'));
         }
     }
 
     /**
      * @throws Exception
      */
-    function setupHandler($hookName, $params) {
+    function setupGridHandler($hookName, $params) {
         $request = Application::get()->getRequest();
-        if($params[0] === 'exportreview' && $this->validateReviewExport($request)) {
+        if($params[0] === 'reviews.DownloadHandler' && $this->validateReviewExport($request)) {
             $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var \PKP\submission\reviewAssignment\ReviewAssignmentDAO $reviewAssignmentDao */
             $authorFriendly = (bool) $request->getUserVar('authorFriendly');
             $reviewId = $request->getUserVar('reviewAssignmentId');
