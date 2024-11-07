@@ -507,12 +507,13 @@ class DownloadReviewsPlugin extends GenericPlugin {
     protected function validateReviewExport(Request $request): bool
     {
         $reviewId = $request->getUserVar('reviewAssignmentId');
-        $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var \PKP\submission\reviewAssignment\ReviewAssignmentDAO $reviewAssignmentDao */
-        $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
-
         $user = $request->getUser();
         if(!$user) {
             return false;
+        }
+
+        if(!in_array($request->getUserVar('authorFriendly'), ['0', '1'])) {
+            throw new Exception('Invalid authorFriendly value');
         }
 
         $context = $request->getContext();
@@ -525,24 +526,25 @@ class DownloadReviewsPlugin extends GenericPlugin {
             {
                 return false;
             }
-        }
 
-        if(!in_array($request->getUserVar('authorFriendly'), ['0', '1'])) {
-            throw new Exception('Invalid authorFriendly value');
-        }
+            $submissionId = $request->getUserVar('submissionId');
+            $submission = Repo::submission()->get($submissionId, $contextId);
+            if (!$submission) {
+                throw new Exception('Invalid submission');
+            }
 
-        $submissionId = $request->getUserVar('submissionId');
-        $submission = Repo::submission()->get($submissionId);
-        if (!$submission) {
-            throw new Exception('Invalid submission');
-        }
+            $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var \PKP\submission\reviewAssignment\ReviewAssignmentDAO $reviewAssignmentDao */
+            $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
 
-        if(!$reviewAssignment) {
-            throw new Exception('Invalid review assignment');
-        }
+            if(!$reviewAssignment) {
+                throw new Exception('Invalid review assignment');
+            }
 
-        if($reviewAssignment->getSubmissionId() != $submissionId) {
-            throw new Exception('Invalid review submission or review assignment');
+            if($reviewAssignment->getSubmissionId() != $submissionId) {
+                throw new Exception('Invalid review submission or review assignment');
+            }
+        } else {
+            return false;
         }
 
         return true;
