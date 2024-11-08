@@ -104,7 +104,6 @@ class DownloadReviewsPlugin extends GenericPlugin {
 			$submission = $submissionDao->getById($submissionId);
 			$submissionCommentDao = DAORegistry::getDAO('SubmissionCommentDAO'); /* @var $submissionCommentDao SubmissionCommentDAO */
             if($params[1] === 'pdf') {
-                $submissionId = $submission->getId();
                 $submissionComments = $submissionCommentDao->getReviewerCommentsByReviewerId($submissionId, $reviewAssignment->getReviewerId(), $reviewId, true);
                 $submissionCommentsPrivate = $submissionCommentDao->getReviewerCommentsByReviewerId($submissionId, $reviewAssignment->getReviewerId(), $reviewId, false);
                 $title = $submission->getCurrentPublication()->getLocalizedTitle(null, 'html');
@@ -172,8 +171,6 @@ class DownloadReviewsPlugin extends GenericPlugin {
 				$mpdf->Output("submission_review_{$submissionId}-{$reviewId}.pdf", 'D');
             } elseif($params[1] === 'xml') {
                 $request = $this->getRequest();
-                $submissionId = $request->getUserVar('submissionId');
-                $reviewId = $request->getUserVar('reviewAssignmentId');
                 $xmlFileName = "submission_review_{$submissionId}-{$reviewId}.xml";
 				$submissionDao = DAORegistry::getDAO('SubmissionDAO'); /* @var $submissionDao SubmissionDAO */
 				$submission = $submissionDao->getById($submissionId);
@@ -196,32 +193,38 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $article->setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
                 $xml->appendChild($article);
 
-                $front = $xml->createElement('front');
-                $article->appendChild($front);
+				$front = $xml->createElement('front');
+				$article->appendChild($front);
 
-                $journalMeta = $xml->createElement('journal-meta');
-                $selfUri = $xml->createElement('self-uri', $request->getBaseUrl());
-                $journalMeta->appendChild($selfUri);
+				$journalMeta = $xml->createElement('journal-meta');
+				$selfUri = $xml->createElement('self-uri');
+				$baseUrl = $xml->createTextNode($request->getBaseUrl());
+				$selfUri->appendChild($baseUrl);
+				$journalMeta->appendChild($selfUri);
 
-                $front->appendChild($journalMeta);
-                $articleMeta = $xml->createElement('article-meta');
-                $front->appendChild($articleMeta);
+				$front->appendChild($journalMeta);
+				$articleMeta = $xml->createElement('article-meta');
+				$front->appendChild($articleMeta);
 
-                $articleId = $xml->createElement('article-id', $submissionId);
-                $articleId->setAttribute('id-type', 'submission-id');
-                $articleMeta->appendChild($articleId);
+				$submissionIdText = $xml->createTextNode($submissionId);
+				$articleId = $xml->createElement('article-id');
+				$articleId->setAttribute('id-type', 'submission-id');
+				$articleId->appendChild($submissionIdText);
+				$articleMeta->appendChild($articleId);
 
-                $titleGroup = $xml->createElement('title-group');
-                $articleMeta->appendChild($titleGroup);
-                $articleTitle = $xml->createElement('article-title', $articleTitle);
-                $titleGroup->appendChild($articleTitle);
+				$titleGroup = $xml->createElement('title-group');
+				$articleMeta->appendChild($titleGroup);
+				$articleTitleElem = $xml->createElement('article-title');
+				$articleTitleText = $xml->createTextNode($articleTitle);
+				$articleTitleElem->appendChild($articleTitleText);
+				$titleGroup->appendChild($articleTitleElem);
 
-                $contribGroup = $xml->createElement('contrib-group');
-                $articleMeta->appendChild($contribGroup);
+				$contribGroup = $xml->createElement('contrib-group');
+				$articleMeta->appendChild($contribGroup);
 
-                $contrib = $xml->createElement('contrib');
-                $contrib->setAttribute('contrib-type', 'author');
-                $contribGroup->appendChild($contrib);
+				$contrib = $xml->createElement('contrib');
+				$contrib->setAttribute('contrib-type', 'author');
+				$contribGroup->appendChild($contrib);
 
                 if($authorFriendly) {
                     $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
@@ -241,9 +244,11 @@ class DownloadReviewsPlugin extends GenericPlugin {
                     $reviewerName = __('user.role.reviewer') . ": " .  $reviewAssignment->getReviewerFullName();
                 }
 
-                $role = $xml->createElement('role', $reviewerName);
-                $role->setAttribute('specific-use', 'reviewer');
-                $contrib->appendChild($role);
+				$role = $xml->createElement('role');
+				$roleText = $xml->createTextNode($reviewerName);
+				$role->appendChild($roleText);
+				$role->setAttribute('specific-use', 'reviewer');
+				$contrib->appendChild($role);
 
                 $pubHistory = $xml->createElement('pub-history');
                 $event = $xml->createElement('event');
@@ -252,16 +257,27 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $dateReviewCompleted = $reviewAssignment->getDateCompleted();
                 $dateParsed = Carbon::parse($dateReviewCompleted);
 
-                $eventDesc = $xml->createElement('event-desc', 'Current Submission Review Completed');
-                $eventDate = $xml->createElement('date');
-                $eventDate->setAttribute('iso-8601-date', $dateReviewCompleted);
+				$eventDesc = $xml->createElement('event-desc');
+				$eventDescText = $xml->createTextNode('Current Submission Review Completed');
+				$eventDesc->appendChild($eventDescText);
+				$eventDate = $xml->createElement('date');
+				$eventDate->setAttribute('iso-8601-date', $dateReviewCompleted);
 
-                $event->appendChild($eventDesc);
-                $day = $xml->createElement('day', $dateParsed->day);
-                $eventDate->appendChild($day);
-                $month = $xml->createElement('month', $dateParsed->month);
-                $eventDate->appendChild($month);
-                $year = $xml->createElement('year', $dateParsed->year);
+				$event->appendChild($eventDesc);
+				$day = $xml->createElement('day');
+				$dayText = $xml->createTextNode($dateParsed->day);
+				$day->appendChild($dayText);
+
+				$eventDate->appendChild($day);
+				$month = $xml->createElement('month');
+				$monthText = $xml->createTextNode($dateParsed->month);
+				$month->appendChild($monthText);
+
+				$eventDate->appendChild($month);
+				$year = $xml->createElement('year');
+				$yearText = $xml->createTextNode($dateParsed->year);
+				$year->appendChild($yearText);
+
                 $eventDate->appendChild($year);
                 $event->appendChild($eventDate);
                 $pubHistory->appendChild($event);
@@ -270,26 +286,38 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $permissions = $xml->createElement('permissions');
                 $articleMeta->appendChild($permissions);
 
-                $licenseRef = $xml->createElement('ali:license_ref', 'http://creativecommons.org/licenses/by/4.0/');
-                $permissions->appendChild($licenseRef);
+				$licenseRef = $xml->createElement('ali:license_ref');
+				$licenseRefText = $xml->createTextNode('http://creativecommons.org/licenses/by/4.0/');
+				$licenseRef->appendChild($licenseRefText);
+				$permissions->appendChild($licenseRef);
+
 
                 $submissionCommentDao = DAORegistry::getDAO('SubmissionCommentDAO'); /* @var $submissionCommentDao SubmissionCommentDAO */
                 $submissionComments = $submissionCommentDao->getReviewerCommentsByReviewerId($submissionId, $reviewAssignment->getReviewerId(), $reviewId, true);
 
-                $customMetaGroupObject = $xml->createElement('custom-meta-group');
-                $customMetaPeerReviewStage = $xml->createElement('custom-meta');
-                $peerReviewStageTag = $xml->createElement('meta-name', 'peer-review-stage');
-                $peerReviewStageValueTag = $xml->createElement('meta-value', 'pre-publication');
+				$customMetaGroupObject = $xml->createElement('custom-meta-group');
+				$customMetaPeerReviewStage = $xml->createElement('custom-meta');
+				$peerReviewStageTag = $xml->createElement('meta-name');
+				$peerReviewStageText = $xml->createTextNode('peer-review-stage');
+				$peerReviewStageTag->appendChild($peerReviewStageText);
 
-                $customMetaPeerReviewStage->appendChild($peerReviewStageTag);
-                $customMetaPeerReviewStage->appendChild($peerReviewStageValueTag);
+				$peerReviewStageValueTag = $xml->createElement('meta-value');
+				$peerReviewStageValueText = $xml->createTextNode('pre-publication');
+				$peerReviewStageValueTag->appendChild($peerReviewStageValueText);
 
-                $customMetaReccomObject = $xml->createElement('custom-meta');
-                $recomTag = $xml->createElement('meta-name', 'peer-review-recommendation');
-                $recomValueTag = $xml->createElement('meta-value', $recommendation);
+				$customMetaPeerReviewStage->appendChild($peerReviewStageTag);
+				$customMetaPeerReviewStage->appendChild($peerReviewStageValueTag);
 
-                $customMetaReccomObject->appendChild($recomTag);
-                $customMetaReccomObject->appendChild($recomValueTag);
+				$customMetaReccomObject = $xml->createElement('custom-meta');
+				$recomTag = $xml->createElement('meta-name');
+				$reccomTagText = $xml->createTextNode('peer-review-recommendation');
+				$recomTag->appendChild($reccomTagText);
+
+				$recomValueTag = $xml->createElement('meta-value');
+				$recomValueText = $xml->createTextNode($recommendation);
+				$recomValueTag->appendChild($recomValueText);
+				$customMetaReccomObject->appendChild($recomTag);
+				$customMetaReccomObject->appendChild($recomValueTag);
 
                 if ($reviewAssignment->getReviewFormId()) {
                     $reviewFormElementDao = DAORegistry::getDAO('ReviewFormElementDAO');
@@ -315,35 +343,49 @@ class DownloadReviewsPlugin extends GenericPlugin {
                         } else {
                             $answer = $reviewFormResponses[$elementId];
                         }
-                        $customMetaObject = $xml->createElement('custom-meta');
-                        $nameTag = $xml->createElement('meta-name', strip_tags($reviewFormElement->getLocalizedQuestion()));
-                        $valueTag = $xml->createElement('meta-value', $answer);
-                        $customMetaObject->appendChild($nameTag);
-                        $customMetaObject->appendChild($valueTag);
-                        $customMetaGroupObject->appendChild($customMetaObject);
+						$customMetaObject = $xml->createElement('custom-meta');
+						$nameTag = $xml->createElement('meta-name');
+						$nameText = $xml->createTextNode(strip_tags($reviewFormElement->getLocalizedQuestion()));
+						$nameTag->appendChild($nameText);
+
+						$valueTag = $xml->createElement('meta-value');
+						$valueText = $xml->createTextNode($answer);
+						$valueTag->appendChild($valueText);
+
+						$customMetaObject->appendChild($nameTag);
+						$customMetaObject->appendChild($valueTag);
+						$customMetaGroupObject->appendChild($customMetaObject);
                     }
                 } else {
-                    foreach ($submissionComments->records as $key => $comment) {
-                        $customMetaCommentsObject = $xml->createElement('custom-meta');
-                        $metaName = 'submission-comments-' . $key + 1;
-                        $commentsTag = $xml->createElement('meta-name', $metaName);
-                        $commentsValueTag = $xml->createElement('meta-value', strip_tags($comment->comments));
-                        $customMetaCommentsObject->appendChild($commentsTag);
-                        $customMetaCommentsObject->appendChild($commentsValueTag);
-                        $customMetaGroupObject->appendChild($customMetaCommentsObject);
-                    }
+					foreach ($submissionComments->records as $key => $comment) {
+						$customMetaCommentsObject = $xml->createElement('custom-meta');
+						$metaName = $submissionComments->records->count() > 1 ? 'submission-comments-' . $key + 1 : 'submission-comments';
+						$commentsTag = $xml->createElement('meta-name');
+						$commentsTagText = $xml->createTextNode($metaName);
+						$commentsTag->appendChild($commentsTagText);
+						$commentsValueTag = $xml->createElement('meta-value');
+						$commentsValueText = $xml->createTextNode(strip_tags($comment->comments));
+						$commentsValueTag->appendChild($commentsValueText);
+						$customMetaCommentsObject->appendChild($commentsTag);
+						$customMetaCommentsObject->appendChild($commentsValueTag);
+						$customMetaGroupObject->appendChild($customMetaCommentsObject);
+					}
 
                     if(!$authorFriendly) {
                         $submissionCommentsPrivate = $submissionCommentDao->getReviewerCommentsByReviewerId($submissionId, $reviewAssignment->getReviewerId(), $reviewId, false);
-                        foreach ($submissionCommentsPrivate->records as $key => $comment) {
-                            $customMetaCommentsPrivateObject = $xml->createElement('custom-meta');
-                            $metaName = 'submission-comments-private-' . $key + 1;
-                            $commentsTag = $xml->createElement('meta-name', $metaName);
-                            $commentsValueTag = $xml->createElement('meta-value', strip_tags($comment->comments));
-                            $customMetaCommentsPrivateObject->appendChild($commentsTag);
-                            $customMetaCommentsPrivateObject->appendChild($commentsValueTag);
-                            $customMetaGroupObject->appendChild($customMetaCommentsPrivateObject);
-                        }
+						foreach ($submissionCommentsPrivate->records as $key => $commentPriavte) {
+							$customMetaCommentsPrivateObject = $xml->createElement('custom-meta');
+							$metaName = $submissionCommentsPrivate->records->count() > 1 ? 'submission-comments-private-' . $key + 1 : 'submission-comments-private';
+							$commentsTag = $xml->createElement('meta-name');
+							$commentsTagText = $xml->createTextNode($metaName);
+							$commentsTag->appendChild($commentsTagText);
+							$commentsValueTag = $xml->createElement('meta-value');
+							$commentsValueText = $xml->createTextNode(strip_tags($commentPriavte->comments));
+							$commentsValueTag->appendChild($commentsValueText);
+							$customMetaCommentsPrivateObject->appendChild($commentsTag);
+							$customMetaCommentsPrivateObject->appendChild($commentsValueTag);
+							$customMetaGroupObject->appendChild($customMetaCommentsPrivateObject);
+						}
                     }
                 }
                 $customMetaGroupObject->appendChild($customMetaPeerReviewStage);
