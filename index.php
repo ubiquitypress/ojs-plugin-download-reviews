@@ -9,5 +9,5 @@
  * @ingroup plugins_generic_downloadReviews
  */
 
-require_once('DownloadReviewsPlugin.inc.php');
+require_once('DownloadReviewsPlugin.php');
 return new DownloadReviewsPlugin();
