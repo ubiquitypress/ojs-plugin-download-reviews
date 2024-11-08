@@ -31,32 +31,30 @@
         });
         {rdelim})
 </script>
+<div id="btnExport" class="pkpButton pkp_helpers_align_right">
+    {translate key="plugins.generic.downloadReviews.downloadReviewForm"} <i class="fa fa-download"></i>
+</div>
+<div id="exportOptions" style="position:absolute;right:16px;margin-top:34px;z-index:1">
+    <div>
+        <a
+                class="download-review-option"
+                href="{$downloadUrl}/pdf?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=1">{translate key="plugins.generic.downloadReviews.review.authorOnly"} (PDF)
+        </a>
+        <a
+                class="download-review-option"
+                href="{$downloadUrl}/xml?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=1">{translate key="plugins.generic.downloadReviews.review.authorOnly"} (XML)
+        </a>
+        <a
+                class="download-review-option"
+                href="{$downloadUrl}/pdf?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=0"">{translate key="plugins.generic.downloadReviews.review.allSections"} (PDF)
+        </a>
+        <a
+                class="download-review-option"
+                href="{$downloadUrl}/xml?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=0"">{translate key="plugins.generic.downloadReviews.review.allSections"} (XML)
+        </a>
+    </div>
+</div>
 
-{if $reviewAssignment->getDateCompleted() != null}
-    <div id="btnExport" class="pkpButton pkp_helpers_align_right">
-        {translate key="plugins.generic.downloadReviews.downloadReviewForm"} <i class="fa fa-download"></i>
-    </div>
-    <div id="exportOptions" style="position:absolute;right:16px;margin-top:34px;z-index:1">
-        <div>
-            <a
-                class="download-review-option"
-                href="{$downloadLink}/pdf?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=1">{translate key="plugins.generic.downloadReviews.review.authorOnly"} (PDF)
-            </a>
-            <a
-                class="download-review-option"
-                href="{$downloadLink}/xml?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=1">{translate key="plugins.generic.downloadReviews.review.authorOnly"} (XML)
-            </a>
-            <a
-                class="download-review-option"
-                href="{$downloadLink}/pdf?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=0"">{translate key="plugins.generic.downloadReviews.review.allSections"} (PDF)
-            </a>
-            <a
-                class="download-review-option"
-                href="{$downloadLink}/xml?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=0"">{translate key="plugins.generic.downloadReviews.review.allSections"} (XML)
-            </a>
-        </div>
-    </div>
-{/if}
 <form class="pkp_form" id="readReviewForm" method="post" action="{url op="reviewRead"}">
     {csrf}
     <input type="hidden" name="reviewAssignmentId" value="{$reviewAssignment->getId()|escape}" />
