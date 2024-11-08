@@ -97,9 +97,9 @@ class DownloadReviewsPlugin extends GenericPlugin {
         if($params[0] === 'reviews.DownloadHandler' && $this->validateReviewExport($request)) {
             $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var \PKP\submission\reviewAssignment\ReviewAssignmentDAO $reviewAssignmentDao */
             $authorFriendly = (bool) $request->getUserVar('authorFriendly');
-            $reviewId = $request->getUserVar('reviewAssignmentId');
+            $reviewId = (int) $request->getUserVar('reviewAssignmentId');
             $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
-            $submissionId = $request->getUserVar('submissionId');
+            $submissionId = (int) $request->getUserVar('submissionId');
             $submission = Repo::submission()->get($submissionId);
             $submissionCommentDao = DAORegistry::getDAO('SubmissionCommentDAO'); /* @var $submissionCommentDao SubmissionCommentDAO */
             if($params[1] === 'pdf') {
