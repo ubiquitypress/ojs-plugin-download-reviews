@@ -39,19 +39,19 @@
 		<div>
 			<a
 				class="download-review-option"
-				href="{$downloadLink}/pdf?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=1">{translate key="plugins.generic.downloadReviews.review.authorOnly"} (PDF)
+				href="{$downloadUrl}/pdf?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=1">{translate key="plugins.generic.downloadReviews.review.authorOnly"} (PDF)
 			</a>
 			<a
 				class="download-review-option"
-				href="{$downloadLink}/xml?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=1">{translate key="plugins.generic.downloadReviews.review.authorOnly"} (XML)
+				href="{$downloadUrl}/xml?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=1">{translate key="plugins.generic.downloadReviews.review.authorOnly"} (XML)
 			</a>
 			<a
 				class="download-review-option"
-				href="{$downloadLink}/pdf?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=0"">{translate key="plugins.generic.downloadReviews.review.allSections"} (PDF)
+				href="{$downloadUrl}/pdf?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=0"">{translate key="plugins.generic.downloadReviews.review.allSections"} (PDF)
 			</a>
 			<a
 				class="download-review-option"
-				href="{$downloadLink}/xml?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=0"">{translate key="plugins.generic.downloadReviews.review.allSections"} (XML)
+				href="{$downloadUrl}/xml?submissionId={$reviewAssignment->getSubmissionId()|escape}&reviewAssignmentId={$reviewAssignment->getId()}&authorFriendly=0"">{translate key="plugins.generic.downloadReviews.review.allSections"} (XML)
 			</a>
 		</div>
 	</div>

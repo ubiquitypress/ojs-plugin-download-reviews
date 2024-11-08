@@ -27,7 +27,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
         // Override OJS templates
         HookRegistry::register('TemplateResource::getFilename', [$this, '_overridePluginTemplates']);
 		HookRegistry::register('TemplateManager::fetch', [$this, 'editTemplate']);
-		HookRegistry::register('LoadHandler', [$this, 'setupHandler']);
+		HookRegistry::register('LoadComponentHandler', [$this, 'setupGridHandler']);
 
         return true;
     }
@@ -73,16 +73,16 @@ class DownloadReviewsPlugin extends GenericPlugin {
         if ($params[1] == 'controllers/grid/users/reviewer/readReview.tpl') {
             $templateMgr =& $params[0];
             $request = Application::get()->getRequest();
-            $templateMgr->assign('downloadLink', $request->getIndexUrl() . '/' . $request->getContext()->getPath() . '/exportreview');
+			$templateMgr->assign('downloadUrl', $request->url(null, 'reviewsHandler', 'download'));
         }
     }
 
     /**
      * @throws Exception
      */
-    function setupHandler($hookName, $params) {
+	function setupGridHandler($hookName, $params) {
         $request = Application::get()->getRequest();
-        if($params[0] === 'exportreview' && $this->validateReviewExport($request)) {
+		if($params[0] === 'reviews.DownloadHandler' && $this->validateReviewExport($request)) {
             $primaryLocale = \AppLocale::getPrimaryLocale();
             $localeFiles = [
                 'user.po',
@@ -97,9 +97,9 @@ class DownloadReviewsPlugin extends GenericPlugin {
             }
             $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var $reviewAssignmentDao ReviewAssignmentDAO */
             $authorFriendly = (bool) $request->getUserVar('authorFriendly');
-            $reviewId = $request->getUserVar('reviewAssignmentId');
+            $reviewId = (int) $request->getUserVar('reviewAssignmentId');
             $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
-            $submissionId = $request->getUserVar('submissionId');
+            $submissionId = (int) $request->getUserVar('submissionId');
 			$submissionDao = DAORegistry::getDAO('SubmissionDAO');
 			$submission = $submissionDao->getById($submissionId);
 			$submissionCommentDao = DAORegistry::getDAO('SubmissionCommentDAO'); /* @var $submissionCommentDao SubmissionCommentDAO */
@@ -133,171 +133,43 @@ class DownloadReviewsPlugin extends GenericPlugin {
                     $reviewerName = __('user.role.reviewer') . ": " .  $reviewAssignment->getReviewerFullName();
                 }
 
-                $html = "
-            <html>
-            <head>
-                <style>
-                    body { font-family: Arial; color: rgb(41, 41, 41); }
-                    h1, h2, h3, h4, h5, h6 { margin: 0; padding: 5px 0; }
-                    .section { margin-bottom: 15px; }
-                </style>
-            </head>
-            <body>
-                <div class='section'>
-                    <h2>" . __('editor.review') . ": $cleanTitle</h2>
-                </div>
-                <div class='section'>
-                    <h3 style='font-weight: bold;'>" . $reviewerName . "</h3>
-                </div>
-        ";
-
-                if ($dateCompleted = $reviewAssignment->getDateCompleted()) {
-                    $html .= "
-                <div class='section'>
-                   <h4 style='font-weight: bold;'>" . __('common.completed') . ': ' . $dateCompleted . "</h4>
-                </div>
-            ";
-                }
-
-                if ($reviewAssignment->getRecommendation()) {
-                    $recommendation = $reviewAssignment->getLocalizedRecommendation();
-                    $html .= "
-                <div class='section'>
-                    <h4 style='font-weight: bold;'>" . __('editor.submission.recommendation') . ': ' . $recommendation . "</h4>
-                </div>
-            ";
-                }
-
-                if ($reviewAssignment->getReviewFormId()) {
-                    $reviewFormElementDao = DAORegistry::getDAO('ReviewFormElementDAO');
-                    /* @var $reviewFormElementDao ReviewFormElementDAO */
-                    $reviewFormResponseDao = DAORegistry::getDAO('ReviewFormResponseDAO');
-                    /* @var $reviewFormResponseDao ReviewFormResponseDAO */
-                    $reviewFormResponses = $reviewFormResponseDao->getReviewReviewFormResponseValues($reviewAssignment->getId());
-                    $reviewFormElements = $reviewFormElementDao->getByReviewFormId($reviewAssignment->getReviewFormId());
-                    while ($reviewFormElement = $reviewFormElements->next()) {
-                        if ($authorFriendly && !$reviewFormElement->getIncluded()) continue;
-                        $elementId = $reviewFormElement->getId();
-                        $html .= "
-                    <div>
-                        <h4 style='font-weight: bold;'>" . strip_tags($reviewFormElement->getLocalizedQuestion()) . "</h4>
-                    </div>
-                ";
-                        if($description = $reviewFormElement->getLocalizedDescription()) {
-                            $html .= "<span>" . $description . "</span>";
-                        }
-                        $value = $reviewFormResponses[$elementId];
-                        $textFields = [
-                            REVIEW_FORM_ELEMENT_TYPE_SMALL_TEXT_FIELD,
-                            REVIEW_FORM_ELEMENT_TYPE_TEXT_FIELD,
-                            REVIEW_FORM_ELEMENT_TYPE_TEXTAREA
-                        ];
-                        if (in_array($reviewFormElement->getElementType(), $textFields)) {
-                            $html .= "<div class='section'><span>" . $value . "</span></div>";
-                        } elseif ($reviewFormElement->getElementType() == REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES) {
-                            $possibleResponses = $reviewFormElement->getLocalizedPossibleResponses();
-                            $reviewFormCheckboxResponses = $reviewFormResponses[$elementId];
-                            foreach ($possibleResponses as $key => $possibleResponse) {
-                                if (in_array($key, $reviewFormCheckboxResponses)) {
-                                    $html .= "
-                                <div style='margin-bottom: 5px;'>
-                                    <input type='checkbox' checked=1>
-                                    <span>
-                                        " . htmlspecialchars($possibleResponse) . "
-                                    </span>
-                                </div>
-                            ";
-                                } else {
-                                    $html .= "
-                                <div style='margin-bottom: 5px;'>
-                                    <input type='checkbox'>
-                                    <span>
-                                        " . htmlspecialchars($possibleResponse) . "
-                                    </span>
-                                </div>
-                            ";
-                                }
-                            }
-                            $html .= "<div class='section'></div>";
-                        } elseif ($reviewFormElement->getElementType() == REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS) {
-                            $possibleResponsesRadios = $reviewFormElement->getLocalizedPossibleResponses();
-                            foreach ($possibleResponsesRadios as $key => $possibleResponseRadio) {
-                                if($reviewFormResponses[$elementId] == $key) {
-                                    $html .= "
-                                <div style='margin-bottom: 5px;'>
-                                    <input type='radio' checked='1'>
-                                    <span>
-                                        " . htmlspecialchars($possibleResponseRadio) . "
-                                    </span>
-                                </div>
-                            ";
-                                } else {
-                                    $html .= "
-                                <div style='margin-bottom: 5px;'>
-                                    <input type='radio'>
-                                    <span>
-                                        " . htmlspecialchars($possibleResponseRadio) . "
-                                    </span>
-                                </div>
-                            ";
-                                }
-                            }
-                            $html .= "<div class='section'></div>";
-                        } elseif ($reviewFormElement->getElementType() == REVIEW_FORM_ELEMENT_TYPE_DROP_DOWN_BOX) {
-                            $possibleResponsesDropdown = $reviewFormElement->getLocalizedPossibleResponses();
-                            $dropdownResponse = $possibleResponsesDropdown[$reviewFormResponses[$elementId]];
-                            $html .= "<div class='section'><span>" . $dropdownResponse . "</span></div>";
-                        }
-                    }
-                } else {
-                    $html .= "
-                <div>
-                    <h4 style='font-weight: bold;'>" . __('editor.review.reviewerComments') . "</h4>
-                    <em style='font-weight: bold; color:#606060;'>" . __('submission.comments.forAuthorEditor') . "</em>
-                </div>
-            ";
-
-					$hasComments = false;
-                    foreach ($submissionComments->records as $comment) {
-						$hasComments = true;
-                        $commentStripped = strip_tags($comment->comments);
-                        $html .= "<div class='section'><span>" . $commentStripped . "</span></div>";
-                    }
-					if(!$hasComments) $html .= "<div class='section'><span>" . __('common.none') . "</span></div>";
-
-					if (!$authorFriendly) {
-                        $html .= "
-                    <div>
-                        <em style='font-weight: bold; color:#606060;'>" . __('submission.comments.cannotShareWithAuthor') . "</em>
-                    </div>
-                ";
-
-                        $hasPrivateComments = false;
-						foreach ($submissionCommentsPrivate->records as $comment) {
-							$hasPrivateComments = true;
-                            $commentStripped = strip_tags($comment->comments);
-                            $html .= "<div class='section'><span>" . $commentStripped . "</span></div>";
-                        }
-						if(!$hasPrivateComments) $html .= "<div class='section'><span>" . __('common.none') . "</span></div>";
-					}
-                }
-				$submissionFilesIterator = Services::get('submissionFile')->getMany([
+				$templateMgr = TemplateManager::getManager(Application::get()->getRequest());
+				$submissionFiles = Services::get('submissionFile')->getMany([
 					'submissionIds' => [$submissionId],
 					'assocTypes' => [ASSOC_TYPE_REVIEW_ASSIGNMENT],
 					'assocIds' => [$reviewId]
 				]);
 
-                $primaryLocale = AppLocale::getPrimaryLocale();
-                $html .= "<div><h4 style='font-weight: bold;'>" . __('reviewer.submission.reviewFiles') . "</h4></div>";
+				$templateMgr->assign(
+					[
+						'cleanTitle' => $cleanTitle,
+						'reviewerName' => $reviewerName,
+						'dateCompleted' => $reviewAssignment->getDateCompleted(),
+						'recommendation' => $reviewAssignment->getLocalizedRecommendation(),
+						'submissionComments' => $submissionComments->toIterator(),
+						'authorFriendly' => $authorFriendly,
+						'submissionCommentsPrivate' => $submissionCommentsPrivate->toIterator(),
+						'submissionFiles' => $submissionFiles,
+					]
+				);
 
-                foreach ($submissionFilesIterator as $submissionFile) {
-                    $fileName = $submissionFile->_data['name'][$primaryLocale];
-                    $html .= "<div class='section'><span>" . $fileName . "</span></div>";
-                }
+				if ($reviewAssignment->getReviewFormId()) {
+					$reviewFormElementDao = DAORegistry::getDAO('ReviewFormElementDAO');
+					/* @var $reviewFormElementDao ReviewFormElementDAO */
+					$reviewFormElements = $reviewFormElementDao->getByReviewFormId($reviewAssignment->getReviewFormId());
 
-                $html .= "</body></html>";
-                $mpdf->WriteHTML($html);
-                $mpdf->Output("submission_review_{$submissionId}-{$reviewId}.pdf", 'D');
+					/* @var $reviewFormResponseDao ReviewFormResponseDAO */
+					$reviewFormResponseDao = DAORegistry::getDAO('ReviewFormResponseDAO');
+					$reviewFormResponses = $reviewFormResponseDao->getReviewReviewFormResponseValues($reviewAssignment->getId());
+					$templateMgr->assign([
+						'reviewFormElements' => $reviewFormElements->toIterator(),
+						'reviewFormResponses' => $reviewFormResponses,
+					]);
+				}
+
+				$reviewHtml = $templateMgr->fetch($this->getTemplateResource('reviewDownload.tpl'));
+				$mpdf->WriteHTML($reviewHtml);
+				$mpdf->Output("submission_review_{$submissionId}-{$reviewId}.pdf", 'D');
             } elseif($params[1] === 'xml') {
                 $request = $this->getRequest();
                 $submissionId = $request->getUserVar('submissionId');
@@ -514,47 +386,49 @@ class DownloadReviewsPlugin extends GenericPlugin {
      */
     protected function validateReviewExport(Request $request): bool
     {
-        $reviewId = $request->getUserVar('reviewAssignmentId');
-        $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var ReviewAssignmentDAO $reviewAssignmentDao */
-        $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
+		$reviewId = $request->getUserVar('reviewAssignmentId');
+		$user = $request->getUser();
+		if(!$user) {
+			return false;
+		}
 
-        $user = $request->getUser();
-        if(!$user) {
-            return false;
-        }
+		if(!in_array($request->getUserVar('authorFriendly'), ['0', '1'])) {
+			throw new Exception('Invalid authorFriendly value');
+		}
 
-        $context = $request->getContext();
-        if($context) {
-            $contextId = $context->getId();
-            $roleDao = DAORegistry::getDAO('RoleDAO'); /* @var $roleDao RoleDAO */
+		$context = $request->getContext();
+		if($context) {
+			$contextId = $context->getId();
+			$roleDao = DAORegistry::getDAO('RoleDAO'); /* @var $roleDao RoleDAO */
 
-            if(!$roleDao->userHasRole($contextId, $user->getId(), ROLE_ID_MANAGER)
-                && $roleDao->userHasRole($contextId, $user->getId(), ROLE_ID_MANAGER))
-            {
-                return false;
-            }
-        }
+			if(!$roleDao->userHasRole($contextId, $user->getId(), ROLE_ID_MANAGER)
+				&& $roleDao->userHasRole($contextId, $user->getId(), ROLE_ID_MANAGER))
+			{
+				return false;
+			}
 
-        if(!in_array($request->getUserVar('authorFriendly'), ['0', '1'])) {
-            throw new Exception('Invalid authorFriendly value');
-        }
+			$submissionId = $request->getUserVar('submissionId');
+			$submissionDao = DAORegistry::getDAO('SubmissionDAO'); /* @var $submissionDao SubmissionDAO */
+			$submission = $submissionDao->getById($submissionId);
+			if (!$submission) {
+				throw new Exception('Invalid submission');
+			}
 
-        $submissionId = $request->getUserVar('submissionId');
-		$submissionDao = DAORegistry::getDAO('SubmissionDAO'); /* @var $submissionDao SubmissionDAO */
-		$submission = $submissionDao->getById($submissionId);
-        if (!$submission) {
-            throw new Exception('Invalid submission');
-        }
+			$reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var ReviewAssignmentDAO $reviewAssignmentDao */
+			$reviewAssignment = $reviewAssignmentDao->getById($reviewId);
 
-        if(!$reviewAssignment) {
-            throw new Exception('Invalid review assignment');
-        }
+			if(!$reviewAssignment) {
+				throw new Exception('Invalid review assignment');
+			}
 
-        if($reviewAssignment->getSubmissionId() != $submissionId) {
-            throw new Exception('Invalid review submission or review assignment');
-        }
+			if($reviewAssignment->getSubmissionId() != $submissionId) {
+				throw new Exception('Invalid review submission or review assignment');
+			}
+		} else {
+			return false;
+		}
 
-        return true;
+		return true;
     }
 
 }
