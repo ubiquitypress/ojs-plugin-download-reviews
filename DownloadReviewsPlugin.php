@@ -369,14 +369,14 @@ class DownloadReviewsPlugin extends GenericPlugin {
 
                     if(!$authorFriendly) {
                         $submissionCommentsPrivate = $submissionCommentDao->getReviewerCommentsByReviewerId($submissionId, $reviewAssignment->getReviewerId(), $reviewId, false);
-                        foreach ($submissionCommentsPrivate->records as $key => $commentPriavte) {
+                        foreach ($submissionCommentsPrivate->records as $key => $commentPrivate) {
                             $customMetaCommentsPrivateObject = $xml->createElement('custom-meta');
                             $metaName = $submissionCommentsPrivate->records->count() > 1 ? 'submission-comments-private-' . $key + 1 : 'submission-comments-private';
                             $commentsTag = $xml->createElement('meta-name');
                             $commentsTagText = $xml->createTextNode($metaName);
                             $commentsTag->appendChild($commentsTagText);
                             $commentsValueTag = $xml->createElement('meta-value');
-                            $commentsValueText = $xml->createTextNode(strip_tags($commentPriavte->comments));
+                            $commentsValueText = $xml->createTextNode(strip_tags($commentPrivate->comments));
                             $commentsValueTag->appendChild($commentsValueText);
                             $customMetaCommentsPrivateObject->appendChild($commentsTag);
                             $customMetaCommentsPrivateObject->appendChild($commentsValueTag);
