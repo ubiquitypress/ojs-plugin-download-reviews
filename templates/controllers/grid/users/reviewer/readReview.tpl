@@ -22,6 +22,11 @@
 		$("#btnExport").click(function() {
 			$("#exportOptions").toggle();
 		});
+
+		$(".header").on('click', function() {
+			$("#exportOptions").hide();
+		});
+
 		$("#readReviewForm").on('click', function(event) {
 			let $target = $(event.target);
 			if (!$target.closest('#exportOptions').length && !$target.is('#btnExport')) {
