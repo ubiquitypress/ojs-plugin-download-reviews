@@ -291,7 +291,6 @@ class DownloadReviewsPlugin extends GenericPlugin {
 				$licenseRef->appendChild($licenseRefText);
 				$permissions->appendChild($licenseRef);
 
-
                 $submissionCommentDao = DAORegistry::getDAO('SubmissionCommentDAO'); /* @var $submissionCommentDao SubmissionCommentDAO */
                 $submissionComments = $submissionCommentDao->getReviewerCommentsByReviewerId($submissionId, $reviewAssignment->getReviewerId(), $reviewId, true);
 

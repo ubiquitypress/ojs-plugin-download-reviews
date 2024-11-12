@@ -15,6 +15,8 @@
 	{include file="reviewer/review/reviewerRecommendations.tpl" description="reviewer.article.selectRecommendation.byEditor" required=false}
 {/capture}
 
+<link rel="stylesheet" href="/plugins/generic/downloadReviews/css/downloadReviews.css">
+
 <script>
 	$(function() {ldelim}
 		$('#readReviewForm').pkpHandler('$.pkp.controllers.form.AjaxFormHandler');
@@ -40,7 +42,7 @@
 	<div id="btnExport" class="pkpButton pkp_helpers_align_right">
 		{translate key="plugins.generic.downloadReviews.downloadReviewForm"} <i class="fa fa-download"></i>
 	</div>
-	<div id="exportOptions" style="position:absolute;right:16px;margin-top:34px;z-index:1">
+		<div id="exportOptions">
 		<div>
 			<a
 				class="download-review-option"
@@ -152,14 +154,3 @@
 	{fbvFormButtons id="closeButton" hideCancel=false submitText="common.confirm"}
 	{/fbvFormArea}
 </form>
-<style>
-	.download-review-option {
-		text-decoration: none;
-		font-size: 0.9rem;
-		padding: 0.5rem;
-		border: 1px solid #dee2e6;
-		display: block;
-		background-color: #fff;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-	}
-</style>
