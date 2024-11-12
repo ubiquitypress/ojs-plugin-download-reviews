@@ -15,7 +15,6 @@ use APP\facades\Repo;
 use APP\template\TemplateManager;
 use Illuminate\Support\Carbon;
 use Mpdf\Mpdf;
-use PKP\facades\Locale;
 use PKP\db\DAORegistry;
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
@@ -242,7 +241,9 @@ class DownloadReviewsPlugin extends GenericPlugin {
                     $reviewerName = __('user.role.reviewer') . ": " .  $reviewAssignment->getReviewerFullName();
                 }
 
-                $role = $xml->createElement('role', $reviewerName);
+                $role = $xml->createElement('role');
+                $roleText = $xml->createTextNode($reviewerName);
+                $role->appendChild($roleText);
                 $role->setAttribute('specific-use', 'reviewer');
                 $contrib->appendChild($role);
 
