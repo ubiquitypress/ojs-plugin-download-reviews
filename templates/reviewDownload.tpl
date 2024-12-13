@@ -45,12 +45,12 @@
 		{assign var="value" value=$reviewFormResponses[$elementId]}
 
 		{if in_array($reviewFormElement->getElementType(), [
-		ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_SMALL_TEXT_FIELD,
-		ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_TEXT_FIELD,
-		ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_TEXTAREA
+		REVIEW_FORM_ELEMENT_TYPE_SMALL_TEXT_FIELD,
+		REVIEW_FORM_ELEMENT_TYPE_TEXT_FIELD,
+		REVIEW_FORM_ELEMENT_TYPE_TEXTAREA
 		])}
 			<div class="section"><span>{$value|strip_tags|escape}</span></div>
-		{elseif $reviewFormElement->getElementType() == ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES}
+		{elseif $reviewFormElement->getElementType() == REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES}
 			{assign var="possibleResponses" value=$reviewFormElement->getLocalizedPossibleResponses()}
 			{assign var="reviewFormCheckboxResponses" value=$reviewFormResponses[$elementId]}
 			<div class="section">
@@ -61,7 +61,7 @@
 					</div>
 				{/foreach}
 			</div>
-		{elseif $reviewFormElement->getElementType() == ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS}
+		{elseif $reviewFormElement->getElementType() == REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS}
 			{assign var="possibleResponsesRadios" value=$reviewFormElement->getLocalizedPossibleResponses()}
 			<div class="section">
 				{foreach from=$possibleResponsesRadios key=key item=possibleResponseRadio}
@@ -71,7 +71,7 @@
 					</div>
 				{/foreach}
 			</div>
-		{elseif $reviewFormElement->getElementType() == ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_DROP_DOWN_BOX}
+		{elseif $reviewFormElement->getElementType() == REVIEW_FORM_ELEMENT_TYPE_DROP_DOWN_BOX}
 			{assign var="possibleResponsesDropdown" value=$reviewFormElement->getLocalizedPossibleResponses()}
 			{assign var="dropdownResponse" value=$possibleResponsesDropdown[$reviewFormResponses[$elementId]]}
 			<div class="section"><span>{$dropdownResponse|escape}</span></div>
