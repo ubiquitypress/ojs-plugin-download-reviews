@@ -87,7 +87,9 @@
 		<div class="section"><span>{translate key="common.none"}</span></div>
 	{else}
 		{foreach from=$submissionComments item=comment}
-			<div class="section"><span>{$comment->getComments()|strip_tags|escape|nl2br}</span></div>
+			<div class="section">
+				<span>{$comment->getComments()|replace:'&nbsp;':''|strip_tags|escape|nl2br}</span>
+			</div>
 		{/foreach}
 	{/if}
 
@@ -100,7 +102,9 @@
 			<div class="section"><span>{translate key="common.none"}</span></div>
 		{else}
 			{foreach from=$submissionCommentsPrivate item=comment}
-				<div class="section"><span>{$comment->getComments()|strip_tags|escape|nl2br}</span></div>
+				<div class="section">
+					<span>{$comment->getComments()|replace:'&nbsp;':''|strip_tags|escape|nl2br}</span>
+				</div>
 			{/foreach}
 		{/if}
 	{/if}
