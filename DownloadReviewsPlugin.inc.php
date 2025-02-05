@@ -10,6 +10,7 @@
  */
 
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Mpdf\Mpdf;
 
 import('lib.pkp.classes.plugins.GenericPlugin');
@@ -168,10 +169,10 @@ class DownloadReviewsPlugin extends GenericPlugin {
 
 				$reviewHtml = $templateMgr->fetch($this->getTemplateResource('reviewDownload.tpl'));
 				$mpdf->WriteHTML($reviewHtml);
-				$mpdf->Output("submission_review_{$submissionId}-{$reviewId}.pdf", 'D');
+				$reviewerNameFile = Str::snake(str_replace(':', '', $reviewerName));
+				$mpdf->Output("submission_review_{$submissionId}-{$reviewerNameFile}.pdf", 'D');
             } elseif($params[1] === 'xml') {
                 $request = $this->getRequest();
-                $xmlFileName = "submission_review_{$submissionId}-{$reviewId}.xml";
 				$submissionDao = DAORegistry::getDAO('SubmissionDAO'); /* @var $submissionDao SubmissionDAO */
 				$submission = $submissionDao->getById($submissionId);
 				$publication = $submission->getCurrentPublication();
@@ -338,7 +339,11 @@ class DownloadReviewsPlugin extends GenericPlugin {
                             $answer = implode(', ', $results);
                         } elseif (in_array($reviewFormElement->getElementType(), [REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS, REVIEW_FORM_ELEMENT_TYPE_DROP_DOWN_BOX])) {
                             $possibleResponses = $reviewFormElement->getLocalizedPossibleResponses();
-                            $answer = array_key_exists($reviewFormResponses[$elementId], $possibleResponses) ? $possibleResponses[$reviewFormResponses[$elementId]] : '';
+							if($possibleResponses && $reviewFormResponses[$elementId] && array_key_exists($reviewFormResponses[$elementId], $possibleResponses)) {
+								$answer = $possibleResponses[$reviewFormResponses[$elementId]];
+							} else {
+								$answer = '';
+							}
                         } else {
                             $answer = $reviewFormResponses[$elementId];
                         }
@@ -391,6 +396,8 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $customMetaGroupObject->appendChild($customMetaReccomObject);
                 $articleMeta->appendChild($customMetaGroupObject);
                 $xml->formatOutput = true;
+				$reviewerNameFile = Str::snake(str_replace(':', '', $reviewerName));
+				$xmlFileName = "submission_review_{$submissionId}-{$reviewerNameFile}.xml";
                 header('Content-Type: application/xml');
                 header('Content-Disposition: attachment; filename="' . basename($xmlFileName) . '"');
                 echo $xml->saveXML();
