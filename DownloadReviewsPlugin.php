@@ -14,6 +14,7 @@ use APP\core\Request;
 use APP\facades\Repo;
 use APP\template\TemplateManager;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Mpdf\Mpdf;
 use PKP\db\DAORegistry;
 use PKP\plugins\GenericPlugin;
@@ -166,10 +167,10 @@ class DownloadReviewsPlugin extends GenericPlugin {
 
                 $reviewHtml = $templateMgr->fetch($this->getTemplateResource('reviewDownload.tpl'));
                 $mpdf->WriteHTML($reviewHtml);
-                $mpdf->Output("submission_review_{$submissionId}-{$reviewId}.pdf", 'D');
+                $reviewerNameFile = Str::snake(str_replace(':', '', $reviewerName));
+                $mpdf->Output("submission_review_{$submissionId}-{$reviewerNameFile}.pdf", 'D');
             } elseif($params[1] === 'xml') {
                 $request = $this->getRequest();
-                $xmlFileName = "submission_review_{$submissionId}-{$reviewId}.xml";
                 $submission = Repo::submission()->get($submissionId);
                 $publication = $submission->getCurrentPublication();
                 $htmlTitle = $publication->getLocalizedTitle(null, 'html');
@@ -388,6 +389,8 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $customMetaGroupObject->appendChild($customMetaReccomObject);
                 $articleMeta->appendChild($customMetaGroupObject);
                 $xml->formatOutput = true;
+                $reviewerNameFile = Str::snake(str_replace(':', '', $reviewerName));
+                $xmlFileName = "submission_review_{$submissionId}-{$reviewerNameFile}.xml";
                 header('Content-Type: application/xml');
                 header('Content-Disposition: attachment; filename="' . basename($xmlFileName) . '"');
                 echo $xml->saveXML();
