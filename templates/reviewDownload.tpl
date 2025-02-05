@@ -49,7 +49,7 @@
 		REVIEW_FORM_ELEMENT_TYPE_TEXT_FIELD,
 		REVIEW_FORM_ELEMENT_TYPE_TEXTAREA
 		])}
-			<div class="section"><span>{$value|strip_tags|escape}</span></div>
+			<div class="section"><span>{$value|strip_tags|escape|nl2br}</span></div>
 		{elseif $reviewFormElement->getElementType() == REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES}
 			{assign var="possibleResponses" value=$reviewFormElement->getLocalizedPossibleResponses()}
 			{assign var="reviewFormCheckboxResponses" value=$reviewFormResponses[$elementId]}
@@ -87,7 +87,7 @@
 		<div class="section"><span>{translate key="common.none"}</span></div>
 	{else}
 		{foreach from=$submissionComments item=comment}
-			<div class="section"><span>{$comment->getComments()|strip_tags|escape}</span></div>
+			<div class="section"><span>{$comment->getComments()|escape|nl2br}</span></div>
 		{/foreach}
 	{/if}
 
@@ -100,7 +100,7 @@
 			<div class="section"><span>{translate key="common.none"}</span></div>
 		{else}
 			{foreach from=$submissionCommentsPrivate item=comment}
-				<div class="section"><span>{$comment->getComments()|strip_tags|escape}</span></div>
+				<div class="section"><span>{$comment->getComments()|escape|nl2br}</span></div>
 			{/foreach}
 		{/if}
 	{/if}
