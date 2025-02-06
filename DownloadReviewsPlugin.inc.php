@@ -10,7 +10,6 @@
  */
 
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 use Mpdf\Mpdf;
 
 import('lib.pkp.classes.plugins.GenericPlugin');
@@ -117,17 +116,18 @@ class DownloadReviewsPlugin extends GenericPlugin {
                     "autoLangToFont" => true,
                 ]);
 
+				$reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
+				$alphabet = range('A', 'Z');
+				$reviewerLetter = "";
+				$i = 0;
+				foreach($reviewAssignments as $submissionReviewAssignment) {
+					if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
+						$reviewerLetter = $alphabet[$i];
+					}
+					$i++;
+				}
+
                 if($authorFriendly) {
-                    $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
-                    $alphabet = range('A', 'Z');
-                    $reviewerLetter = "";
-                    $i = 0;
-                    foreach($reviewAssignments as $submissionReviewAssignment) {
-                        if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
-                            $reviewerLetter = $alphabet[$i];
-                        }
-                        $i++;
-                    }
                     $reviewerName = __('user.role.reviewer') . ": $reviewerLetter";
                 } else {
                     $reviewerName = __('user.role.reviewer') . ": " .  $reviewAssignment->getReviewerFullName();
@@ -169,7 +169,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
 
 				$reviewHtml = $templateMgr->fetch($this->getTemplateResource('reviewDownload.tpl'));
 				$mpdf->WriteHTML($reviewHtml);
-				$reviewerNameFile = Str::snake(str_replace(':', '', $reviewerName));
+				$reviewerNameFile = __('user.role.reviewer') . "_$reviewerLetter";
 				$mpdf->Output("submission_review_{$submissionId}-{$reviewerNameFile}.pdf", 'D');
             } elseif($params[1] === 'xml') {
                 $request = $this->getRequest();
@@ -227,17 +227,18 @@ class DownloadReviewsPlugin extends GenericPlugin {
 				$contrib->setAttribute('contrib-type', 'author');
 				$contribGroup->appendChild($contrib);
 
+				$reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
+				$alphabet = range('A', 'Z');
+				$reviewerLetter = "";
+				$i = 0;
+				foreach($reviewAssignments as $submissionReviewAssignment) {
+					if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
+						$reviewerLetter = $alphabet[$i];
+					}
+					$i++;
+				}
+
                 if($authorFriendly) {
-                    $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
-                    $alphabet = range('A', 'Z');
-                    $reviewerLetter = "";
-                    $i = 0;
-                    foreach($reviewAssignments as $submissionReviewAssignment) {
-                        if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
-                            $reviewerLetter = $alphabet[$i];
-                        }
-                        $i++;
-                    }
                     $reviewerName = __('user.role.reviewer') . ": $reviewerLetter";
                     $anonymous = $xml->createElement('anonymous');
                     $contrib->appendChild($anonymous);
@@ -396,8 +397,8 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $customMetaGroupObject->appendChild($customMetaReccomObject);
                 $articleMeta->appendChild($customMetaGroupObject);
                 $xml->formatOutput = true;
-				$reviewerNameFile = Str::snake(str_replace(':', '', $reviewerName));
-				$xmlFileName = "submission_review_{$submissionId}-{$reviewerNameFile}.xml";
+				$reviewerNameLetterFile = __('user.role.reviewer') . "_$reviewerLetter";
+				$xmlFileName = "submission_review_{$submissionId}-{$reviewerNameLetterFile}.xml";
                 header('Content-Type: application/xml');
                 header('Content-Disposition: attachment; filename="' . basename($xmlFileName) . '"');
                 echo $xml->saveXML();
