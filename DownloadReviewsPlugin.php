@@ -9,6 +9,8 @@
  * @brief DownloadReviews plugin class
  */
 
+namespace APP\plugins\generic\downloadReviews;
+
 use APP\core\Application;
 use APP\core\Request;
 use APP\facades\Repo;
