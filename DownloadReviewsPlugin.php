@@ -124,7 +124,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $i = 0;
                 foreach($reviewAssignments as $submissionReviewAssignment) {
                     if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) $reviewerLetter = $alphabet[$i];
-                    if($round === $reviewAssignment->getRound()) $i++;
+                    if($round === $submissionReviewAssignment->getRound()) $i++;
                 }
 
                 if($authorFriendly) {
