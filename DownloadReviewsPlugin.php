@@ -123,8 +123,13 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $round = $reviewAssignment->getRound();
                 $i = 0;
                 foreach($reviewAssignments as $submissionReviewAssignment) {
-                    if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) $reviewerLetter = $alphabet[$i];
-                    if($round === $submissionReviewAssignment->getRound()) $i++;
+                    if ($submissionReviewAssignment->getRound() === $round) {
+                        if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
+                            $reviewerLetter = $alphabet[$i];
+                            break;
+                        }
+                        $i++;
+                    }
                 }
 
                 if($authorFriendly) {
@@ -233,8 +238,13 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $reviewerLetter = "";
                 $i = 0;
                 foreach($reviewAssignments as $submissionReviewAssignment) {
-                    if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) $reviewerLetter = $alphabet[$i];
-                    if($submissionReviewAssignment->getRound() === $round) $i++;
+                    if ($submissionReviewAssignment->getRound() === $round) {
+                        if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
+                            $reviewerLetter = $alphabet[$i];
+                            break;
+                        }
+                        $i++;
+                    }
                 }
 
                 if($authorFriendly) {
