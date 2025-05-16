@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file plugins/generic/downloadReviews/DownloadReviewsPlugin.inc.php
+ * @file plugins/generic/downloadReviews/DownloadReviewsPlugin.php
  *
  * @class DownloadReviewsPlugin
  * @ingroup plugins_generic_DownloadReviewsPlugin
@@ -29,6 +29,7 @@ use PKP\submissionFile\SubmissionFile;
 
 class DownloadReviewsPlugin extends GenericPlugin {
     /**
+     *
      * @copydoc Plugin::register()
      */
     function register($category, $path, $mainContextId = null): bool
@@ -119,12 +120,11 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
                 $alphabet = range('A', 'Z');
                 $reviewerLetter = "";
+                $round = $reviewAssignment->getRound();
                 $i = 0;
                 foreach($reviewAssignments as $submissionReviewAssignment) {
-                    if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
-                        $reviewerLetter = $alphabet[$i];
-                    }
-                    $i++;
+                    if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) $reviewerLetter = $alphabet[$i];
+                    if($round === $reviewAssignment->getRound()) $i++;
                 }
 
                 if($authorFriendly) {
@@ -170,7 +170,8 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $reviewHtml = $templateMgr->fetch($this->getTemplateResource('reviewDownload.tpl'));
                 $mpdf->WriteHTML($reviewHtml);
                 $reviewerNameFile = __('user.role.reviewer') . "_$reviewerLetter";
-                $mpdf->Output("submission_review_{$submissionId}-{$reviewerNameFile}.pdf", 'D');
+                $revRoundFile = str_replace(' ', '_', __('common.reviewRoundNumber', ['round' => $round]));
+                $mpdf->Output("submission_review_{$submissionId}-{$reviewerNameFile}-({$revRoundFile}).pdf", 'D');
             } elseif($params[1] === 'xml') {
                 $request = $this->getRequest();
                 $submission = Repo::submission()->get($submissionId);
@@ -227,14 +228,13 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $contribGroup->appendChild($contrib);
 
                 $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
+                $round = $reviewAssignment->getRound();
                 $alphabet = range('A', 'Z');
                 $reviewerLetter = "";
                 $i = 0;
                 foreach($reviewAssignments as $submissionReviewAssignment) {
-                    if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
-                        $reviewerLetter = $alphabet[$i];
-                    }
-                    $i++;
+                    if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) $reviewerLetter = $alphabet[$i];
+                    if($submissionReviewAssignment->getRound() === $round) $i++;
                 }
 
                 if($authorFriendly) {
@@ -393,7 +393,8 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $articleMeta->appendChild($customMetaGroupObject);
                 $xml->formatOutput = true;
                 $reviewerNameLetterFile = __('user.role.reviewer') . "_$reviewerLetter";
-                $xmlFileName = "submission_review_{$submissionId}-{$reviewerNameLetterFile}.xml";
+                $revRoundFile = str_replace('', '_', __('common.reviewRoundNumber', ['round' => $round]));
+                $xmlFileName = "submission_review_{$submissionId}-{$reviewerNameLetterFile}-({$revRoundFile}).xml";
                 header('Content-Type: application/xml');
                 header('Content-Disposition: attachment; filename="' . basename($xmlFileName) . '"');
                 echo $xml->saveXML();
