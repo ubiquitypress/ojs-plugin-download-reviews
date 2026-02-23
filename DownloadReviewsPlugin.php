@@ -185,7 +185,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $articleTitle = $this->mapTitleHtmlTagsToXml($htmlTitle);
                 $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
                 $recommendation = $reviewAssignment->getLocalizedRecommendation();
-                $impl = new DOMImplementation();
+                $impl = new \DOMImplementation();
                 $doctype = $impl->createDocumentType('article',
                     '-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN',
                     'JATS-archivearticle1.dtd');
