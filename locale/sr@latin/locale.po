@@ -1,0 +1,18 @@
+#
+msgid ""
+msgstr "Language: sr@latin\n"
+
+msgid "plugins.generic.downloadReviews.displayName"
+msgstr "Preuzmi recenzije"
+
+msgid "plugins.generic.downloadReviews.description"
+msgstr "Preuzmite PDF ili KSML datoteku recenzije podneska"
+
+msgid "plugins.generic.downloadReviews.review.authorOnly"
+msgstr "Prikazani su odeljci samo za autora"
+
+msgid "plugins.generic.downloadReviews.review.allSections"
+msgstr "Obrazac urednika prikazuje sve odeljke za pregled"
+
+msgid "plugins.generic.downloadReviews.downloadReviewForm"
+msgstr "Preuzmite obrazac za pregled"

@@ -1,13 +1,15 @@
 <?php
 
 /**
- * @file plugins/generic/downloadReviews/DownloadReviewsPlugin.inc.php
+ * @file plugins/generic/downloadReviews/DownloadReviewsPlugin.php
  *
  * @class DownloadReviewsPlugin
  * @ingroup plugins_generic_DownloadReviewsPlugin
  *
  * @brief DownloadReviews plugin class
  */
+
+namespace APP\plugins\generic\downloadReviews;
 
 use APP\core\Application;
 use APP\core\Request;
@@ -27,6 +29,7 @@ use PKP\submissionFile\SubmissionFile;
 
 class DownloadReviewsPlugin extends GenericPlugin {
     /**
+     *
      * @copydoc Plugin::register()
      */
     function register($category, $path, $mainContextId = null): bool
@@ -114,20 +117,25 @@ class DownloadReviewsPlugin extends GenericPlugin {
                     "autoLangToFont" => true,
                 ]);
 
-                if($authorFriendly) {
-                    $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
-                    $alphabet = range('A', 'Z');
-                    $reviewerLetter = "";
-                    $i = 0;
-                    foreach($reviewAssignments as $submissionReviewAssignment) {
+                $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
+                $alphabet = range('A', 'Z');
+                $reviewerLetter = "";
+                $round = $reviewAssignment->getRound();
+                $i = 0;
+                foreach($reviewAssignments as $submissionReviewAssignment) {
+                    if ($submissionReviewAssignment->getRound() === $round) {
                         if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
                             $reviewerLetter = $alphabet[$i];
+                            break;
                         }
                         $i++;
                     }
+                }
+
+                if($authorFriendly) {
                     $reviewerName = __('user.role.reviewer') . ": $reviewerLetter";
                 } else {
-                    $reviewerName = __('user.role.reviewer') . ": " .  $reviewAssignment->getReviewerFullName();
+                    $reviewerName = __('user.role.reviewer') . ": " . $reviewAssignment->getReviewerFullName();
                 }
 
                 $templateMgr = TemplateManager::getManager(Application::get()->getRequest());
@@ -166,17 +174,18 @@ class DownloadReviewsPlugin extends GenericPlugin {
 
                 $reviewHtml = $templateMgr->fetch($this->getTemplateResource('reviewDownload.tpl'));
                 $mpdf->WriteHTML($reviewHtml);
-                $mpdf->Output("submission_review_{$submissionId}-{$reviewId}.pdf", 'D');
+                $reviewerNameFile = __('user.role.reviewer') . "_$reviewerLetter";
+                $revRoundFile = str_replace(' ', '_', __('common.reviewRoundNumber', ['round' => $round]));
+                $mpdf->Output("submission_review_{$submissionId}-{$reviewerNameFile}-({$revRoundFile}).pdf", 'D');
             } elseif($params[1] === 'xml') {
                 $request = $this->getRequest();
-                $xmlFileName = "submission_review_{$submissionId}-{$reviewId}.xml";
                 $submission = Repo::submission()->get($submissionId);
                 $publication = $submission->getCurrentPublication();
                 $htmlTitle = $publication->getLocalizedTitle(null, 'html');
                 $articleTitle = $this->mapTitleHtmlTagsToXml($htmlTitle);
                 $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
                 $recommendation = $reviewAssignment->getLocalizedRecommendation();
-                $impl = new DOMImplementation();
+                $impl = new \DOMImplementation();
                 $doctype = $impl->createDocumentType('article',
                     '-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN',
                     'JATS-archivearticle1.dtd');
@@ -223,17 +232,22 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $contrib->setAttribute('contrib-type', 'author');
                 $contribGroup->appendChild($contrib);
 
-                if($authorFriendly) {
-                    $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
-                    $alphabet = range('A', 'Z');
-                    $reviewerLetter = "";
-                    $i = 0;
-                    foreach($reviewAssignments as $submissionReviewAssignment) {
+                $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
+                $round = $reviewAssignment->getRound();
+                $alphabet = range('A', 'Z');
+                $reviewerLetter = "";
+                $i = 0;
+                foreach($reviewAssignments as $submissionReviewAssignment) {
+                    if ($submissionReviewAssignment->getRound() === $round) {
                         if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
                             $reviewerLetter = $alphabet[$i];
+                            break;
                         }
                         $i++;
                     }
+                }
+
+                if($authorFriendly) {
                     $reviewerName = __('user.role.reviewer') . ": $reviewerLetter";
                     $anonymous = $xml->createElement('anonymous');
                     $contrib->appendChild($anonymous);
@@ -369,14 +383,14 @@ class DownloadReviewsPlugin extends GenericPlugin {
 
                     if(!$authorFriendly) {
                         $submissionCommentsPrivate = $submissionCommentDao->getReviewerCommentsByReviewerId($submissionId, $reviewAssignment->getReviewerId(), $reviewId, false);
-                        foreach ($submissionCommentsPrivate->records as $key => $commentPriavte) {
+                        foreach ($submissionCommentsPrivate->records as $key => $commentPrivate) {
                             $customMetaCommentsPrivateObject = $xml->createElement('custom-meta');
                             $metaName = $submissionCommentsPrivate->records->count() > 1 ? 'submission-comments-private-' . $key + 1 : 'submission-comments-private';
                             $commentsTag = $xml->createElement('meta-name');
                             $commentsTagText = $xml->createTextNode($metaName);
                             $commentsTag->appendChild($commentsTagText);
                             $commentsValueTag = $xml->createElement('meta-value');
-                            $commentsValueText = $xml->createTextNode(strip_tags($commentPriavte->comments));
+                            $commentsValueText = $xml->createTextNode(strip_tags($commentPrivate->comments));
                             $commentsValueTag->appendChild($commentsValueText);
                             $customMetaCommentsPrivateObject->appendChild($commentsTag);
                             $customMetaCommentsPrivateObject->appendChild($commentsValueTag);
@@ -388,6 +402,9 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $customMetaGroupObject->appendChild($customMetaReccomObject);
                 $articleMeta->appendChild($customMetaGroupObject);
                 $xml->formatOutput = true;
+                $reviewerNameLetterFile = __('user.role.reviewer') . "_$reviewerLetter";
+                $revRoundFile = str_replace('', '_', __('common.reviewRoundNumber', ['round' => $round]));
+                $xmlFileName = "submission_review_{$submissionId}-{$reviewerNameLetterFile}-({$revRoundFile}).xml";
                 header('Content-Type: application/xml');
                 header('Content-Disposition: attachment; filename="' . basename($xmlFileName) . '"');
                 echo $xml->saveXML();

@@ -7,8 +7,8 @@
 <version>
     <application>downloadReviews</application>
     <type>plugins.generic</type>
-    <release>1.1.2.1</release>
-    <date>2024-10-22</date>
+    <release>1.1.2.10</release>
+    <date>2025-06-12</date>
     <lazy-load>1</lazy-load>
     <sitewide>1</sitewide>
     <class>DownloadReviewsPlugin</class>
