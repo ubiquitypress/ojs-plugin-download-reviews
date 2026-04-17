@@ -4,6 +4,7 @@
  * @file plugins/generic/downloadReviews/DownloadReviewsPlugin.php
  *
  * @class DownloadReviewsPlugin
+ *
  * @ingroup plugins_generic_DownloadReviewsPlugin
  *
  * @brief DownloadReviews plugin class
@@ -27,12 +28,15 @@ use PKP\security\Role;
 use PKP\submission\SubmissionCommentDAO;
 use PKP\submissionFile\SubmissionFile;
 
-class DownloadReviewsPlugin extends GenericPlugin {
+class DownloadReviewsPlugin extends GenericPlugin
+{
     /**
      *
      * @copydoc Plugin::register()
+     *
+     * @param null|mixed $mainContextId
      */
-    function register($category, $path, $mainContextId = null): bool
+    public function register($category, $path, $mainContextId = null): bool
     {
         if (!parent::register($category, $path, $mainContextId)) {
             return false;
@@ -53,7 +57,8 @@ class DownloadReviewsPlugin extends GenericPlugin {
     /**
      * @copydoc Plugin::isSitePlugin()
      */
-    function isSitePlugin() {
+    public function isSitePlugin()
+    {
         // This is a site-wide plugin.
         return true;
     }
@@ -62,7 +67,8 @@ class DownloadReviewsPlugin extends GenericPlugin {
      * @copydoc Plugin::getDisplayName()
      * Get the plugin name
      */
-    function getDisplayName() {
+    public function getDisplayName()
+    {
         return __('plugins.generic.downloadReviews.displayName');
     }
 
@@ -70,7 +76,8 @@ class DownloadReviewsPlugin extends GenericPlugin {
      * @copydoc Plugin::getDescription()
      * Get the description
      */
-    function getDescription() {
+    public function getDescription()
+    {
         return __('plugins.generic.downloadReviews.description');
     }
 
@@ -78,7 +85,8 @@ class DownloadReviewsPlugin extends GenericPlugin {
      * @copydoc Plugin::getInstallSitePluginSettingsFile()
      * get the plugin settings
      */
-    function getInstallSitePluginSettingsFile() {
+    public function getInstallSitePluginSettingsFile()
+    {
         return $this->getPluginPath() . '/settings.xml';
     }
 
@@ -94,9 +102,10 @@ class DownloadReviewsPlugin extends GenericPlugin {
     /**
      * @throws Exception
      */
-    function setupGridHandler($hookName, $params) {
+    public function setupGridHandler($hookName, $params)
+    {
         $request = Application::get()->getRequest();
-        if($params[0] === 'reviews.DownloadHandler' && $this->validateReviewExport($request)) {
+        if ($params[0] === 'reviews.DownloadHandler' && $this->validateReviewExport($request)) {
             $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var \PKP\submission\reviewAssignment\ReviewAssignmentDAO $reviewAssignmentDao */
             $authorFriendly = (bool) $request->getUserVar('authorFriendly');
             $reviewId = (int) $request->getUserVar('reviewAssignmentId');
@@ -104,27 +113,27 @@ class DownloadReviewsPlugin extends GenericPlugin {
             $submissionId = (int) $request->getUserVar('submissionId');
             $submission = Repo::submission()->get($submissionId);
             $submissionCommentDao = DAORegistry::getDAO('SubmissionCommentDAO'); /* @var $submissionCommentDao SubmissionCommentDAO */
-            if($params[1] === 'pdf') {
+            if ($params[1] === 'pdf') {
                 $submissionComments = $submissionCommentDao->getReviewerCommentsByReviewerId($submissionId, $reviewAssignment->getReviewerId(), $reviewId, true);
                 $submissionCommentsPrivate = $submissionCommentDao->getReviewerCommentsByReviewerId($submissionId, $reviewAssignment->getReviewerId(), $reviewId, false);
                 $title = $submission->getCurrentPublication()->getLocalizedTitle(null, 'html');
-                $cleanTitle = str_replace("&nbsp;", " ", strip_tags($title));
+                $cleanTitle = str_replace('&nbsp;', ' ', strip_tags($title));
                 require_once 'vendor/autoload.php';
                 $mpdf = new Mpdf([
                     'default_font' => 'NotoSansSC',
                     'mode' => '+aCJK',
-                    "autoScriptToLang" => true,
-                    "autoLangToFont" => true,
+                    'autoScriptToLang' => true,
+                    'autoLangToFont' => true,
                 ]);
 
                 $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
                 $alphabet = range('A', 'Z');
-                $reviewerLetter = "";
+                $reviewerLetter = '';
                 $round = $reviewAssignment->getRound();
                 $i = 0;
-                foreach($reviewAssignments as $submissionReviewAssignment) {
+                foreach ($reviewAssignments as $submissionReviewAssignment) {
                     if ($submissionReviewAssignment->getRound() === $round) {
-                        if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
+                        if ($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
                             $reviewerLetter = $alphabet[$i];
                             break;
                         }
@@ -132,10 +141,10 @@ class DownloadReviewsPlugin extends GenericPlugin {
                     }
                 }
 
-                if($authorFriendly) {
-                    $reviewerName = __('user.role.reviewer') . ": $reviewerLetter";
+                if ($authorFriendly) {
+                    $reviewerName = __('user.role.reviewer') . ": {$reviewerLetter}";
                 } else {
-                    $reviewerName = __('user.role.reviewer') . ": " . $reviewAssignment->getReviewerFullName();
+                    $reviewerName = __('user.role.reviewer') . ': ' . $reviewAssignment->getReviewerFullName();
                 }
 
                 $templateMgr = TemplateManager::getManager(Application::get()->getRequest());
@@ -174,10 +183,10 @@ class DownloadReviewsPlugin extends GenericPlugin {
 
                 $reviewHtml = $templateMgr->fetch($this->getTemplateResource('reviewDownload.tpl'));
                 $mpdf->WriteHTML($reviewHtml);
-                $reviewerNameFile = __('user.role.reviewer') . "_$reviewerLetter";
+                $reviewerNameFile = __('user.role.reviewer') . "_{$reviewerLetter}";
                 $revRoundFile = str_replace(' ', '_', __('common.reviewRoundNumber', ['round' => $round]));
                 $mpdf->Output("submission_review_{$submissionId}-{$reviewerNameFile}-({$revRoundFile}).pdf", 'D');
-            } elseif($params[1] === 'xml') {
+            } elseif ($params[1] === 'xml') {
                 $request = $this->getRequest();
                 $submission = Repo::submission()->get($submissionId);
                 $publication = $submission->getCurrentPublication();
@@ -186,9 +195,11 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
                 $recommendation = $reviewAssignment->getLocalizedRecommendation();
                 $impl = new \DOMImplementation();
-                $doctype = $impl->createDocumentType('article',
+                $doctype = $impl->createDocumentType(
+                    'article',
                     '-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN',
-                    'JATS-archivearticle1.dtd');
+                    'JATS-archivearticle1.dtd'
+                );
 
                 $xml = $impl->createDocument(null, '', $doctype);
                 $xml->encoding = 'UTF-8';
@@ -235,11 +246,11 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $reviewAssignments = $reviewAssignmentDao->getBySubmissionId($submission->getId());
                 $round = $reviewAssignment->getRound();
                 $alphabet = range('A', 'Z');
-                $reviewerLetter = "";
+                $reviewerLetter = '';
                 $i = 0;
-                foreach($reviewAssignments as $submissionReviewAssignment) {
+                foreach ($reviewAssignments as $submissionReviewAssignment) {
                     if ($submissionReviewAssignment->getRound() === $round) {
-                        if($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
+                        if ($reviewAssignment->getReviewerId() === $submissionReviewAssignment->getReviewerId()) {
                             $reviewerLetter = $alphabet[$i];
                             break;
                         }
@@ -247,12 +258,12 @@ class DownloadReviewsPlugin extends GenericPlugin {
                     }
                 }
 
-                if($authorFriendly) {
-                    $reviewerName = __('user.role.reviewer') . ": $reviewerLetter";
+                if ($authorFriendly) {
+                    $reviewerName = __('user.role.reviewer') . ": {$reviewerLetter}";
                     $anonymous = $xml->createElement('anonymous');
                     $contrib->appendChild($anonymous);
                 } else {
-                    $reviewerName = __('user.role.reviewer') . ": " .  $reviewAssignment->getReviewerFullName();
+                    $reviewerName = __('user.role.reviewer') . ': ' . $reviewAssignment->getReviewerFullName();
                 }
 
                 $role = $xml->createElement('role');
@@ -337,7 +348,9 @@ class DownloadReviewsPlugin extends GenericPlugin {
                     $reviewFormResponses = $reviewFormResponseDao->getReviewReviewFormResponseValues($reviewAssignment->getId());
                     $reviewFormElements = $reviewFormElementDao->getByReviewFormId($reviewAssignment->getReviewFormId());
                     while ($reviewFormElement = $reviewFormElements->next()) {
-                        if ($authorFriendly && !$reviewFormElement->getIncluded()) continue;
+                        if ($authorFriendly && !$reviewFormElement->getIncluded()) {
+                            continue;
+                        }
                         $elementId = $reviewFormElement->getId();
                         if ($reviewFormElement->getElementType() == ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES) {
                             $results = [];
@@ -381,7 +394,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
                         $customMetaGroupObject->appendChild($customMetaCommentsObject);
                     }
 
-                    if(!$authorFriendly) {
+                    if (!$authorFriendly) {
                         $submissionCommentsPrivate = $submissionCommentDao->getReviewerCommentsByReviewerId($submissionId, $reviewAssignment->getReviewerId(), $reviewId, false);
                         foreach ($submissionCommentsPrivate->records as $key => $commentPrivate) {
                             $customMetaCommentsPrivateObject = $xml->createElement('custom-meta');
@@ -402,7 +415,7 @@ class DownloadReviewsPlugin extends GenericPlugin {
                 $customMetaGroupObject->appendChild($customMetaReccomObject);
                 $articleMeta->appendChild($customMetaGroupObject);
                 $xml->formatOutput = true;
-                $reviewerNameLetterFile = __('user.role.reviewer') . "_$reviewerLetter";
+                $reviewerNameLetterFile = __('user.role.reviewer') . "_{$reviewerLetter}";
                 $revRoundFile = str_replace('', '_', __('common.reviewRoundNumber', ['round' => $round]));
                 $xmlFileName = "submission_review_{$submissionId}-{$reviewerNameLetterFile}-({$revRoundFile}).xml";
                 header('Content-Type: application/xml');
@@ -417,20 +430,20 @@ class DownloadReviewsPlugin extends GenericPlugin {
 
     /**
      * Map the specific HTML tags in title/ sub title for JATS schema compability
+     *
      * @see https://jats.nlm.nih.gov/publishing/0.4/xsd/JATS-journalpublishing0.xsd
      *
      * @param  string $htmlTitle The submission title/sub title as in HTML
-     * @return string
      */
     public static function mapTitleHtmlTagsToXml(string $htmlTitle): string
     {
         $mappings = [
-            '<b>' 	=> '<bold>',
-            '</b>' 	=> '</bold>',
-            '<i>' 	=> '<italic>',
-            '</i>' 	=> '</italic>',
-            '<u>' 	=> '<underline>',
-            '</u>' 	=> '</underline>',
+            '<b>' => '<bold>',
+            '</b>' => '</bold>',
+            '<i>' => '<italic>',
+            '</i>' => '</italic>',
+            '<u>' => '<underline>',
+            '</u>' => '</underline>',
         ];
 
         return str_replace(array_keys($mappings), array_values($mappings), $htmlTitle);
@@ -443,22 +456,21 @@ class DownloadReviewsPlugin extends GenericPlugin {
     {
         $reviewId = $request->getUserVar('reviewAssignmentId');
         $user = $request->getUser();
-        if(!$user) {
+        if (!$user) {
             return false;
         }
 
-        if(!in_array($request->getUserVar('authorFriendly'), ['0', '1'])) {
+        if (!in_array($request->getUserVar('authorFriendly'), ['0', '1'])) {
             throw new Exception('Invalid authorFriendly value');
         }
 
         $context = $request->getContext();
-        if($context) {
+        if ($context) {
             $contextId = $context->getId();
             $roleDao = DAORegistry::getDAO('RoleDAO'); /* @var $roleDao RoleDAO */
 
-            if(!$roleDao->userHasRole($contextId, $user->getId(), Role::ROLE_ID_MANAGER)
-                && $roleDao->userHasRole($contextId, $user->getId(), Role::ROLE_ID_MANAGER))
-            {
+            if (!$roleDao->userHasRole($contextId, $user->getId(), Role::ROLE_ID_MANAGER)
+                && $roleDao->userHasRole($contextId, $user->getId(), Role::ROLE_ID_MANAGER)) {
                 return false;
             }
 
@@ -471,11 +483,11 @@ class DownloadReviewsPlugin extends GenericPlugin {
             $reviewAssignmentDao = DAORegistry::getDAO('ReviewAssignmentDAO'); /** @var \PKP\submission\reviewAssignment\ReviewAssignmentDAO $reviewAssignmentDao */
             $reviewAssignment = $reviewAssignmentDao->getById($reviewId);
 
-            if(!$reviewAssignment) {
+            if (!$reviewAssignment) {
                 throw new Exception('Invalid review assignment');
             }
 
-            if($reviewAssignment->getSubmissionId() != $submissionId) {
+            if ($reviewAssignment->getSubmissionId() != $submissionId) {
                 throw new Exception('Invalid review submission or review assignment');
             }
         } else {
