@@ -151,7 +151,7 @@ class DownloadReviewsPlugin extends GenericPlugin
                 $submissionFiles = Repo::submissionFile()
                     ->getCollector()
                     ->filterBySubmissionIds([$submissionId])
-                    ->filterByFileStages([SubmissionFile::SUBMISSION_FILE_SUBMISSION])
+                    ->filterByFileStages([SubmissionFile::SUBMISSION_FILE_REVIEW_FILE])
                     ->getMany();
 
                 $templateMgr->assign(
