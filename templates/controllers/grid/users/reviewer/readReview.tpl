@@ -19,6 +19,10 @@
     $(function() {ldelim}
         $('#readReviewForm').pkpHandler('$.pkp.controllers.form.AjaxFormHandler');
 
+        // OJS renders the modal title as text; re-render as HTML to evaluate <em> etc.
+        let titleElem = $('.pkp_modal_panel .header');
+        titleElem.html(titleElem.text());
+
         $("#exportOptions").hide();
         $("#btnExport").click(function() {
             $("#exportOptions").toggle();
